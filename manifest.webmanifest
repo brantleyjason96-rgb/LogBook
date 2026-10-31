@@ -1,0 +1,19 @@
+{
+  "name": "Logbook",
+  "short_name": "Logbook",
+  "description": "Your second brain: people, content and notes.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f4ef",
+  "theme_color": "#f6f4ef",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Met someone", "url": "./#/home/met" },
+    { "name": "Thought", "url": "./#/home/note" }
+  ]
+}
