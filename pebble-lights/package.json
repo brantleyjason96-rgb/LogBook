@@ -1,0 +1,47 @@
+{
+  "name": "pebble-lights",
+  "author": "Jason",
+  "version": "0.1.0",
+  "keywords": [
+    "pebble-app"
+  ],
+  "private": true,
+  "dependencies": {},
+  "scripts": {
+    "test": "node --test test/*.test.cjs"
+  },
+  "pebble": {
+    "displayName": "Home Lights",
+    "uuid": "c1e18127-4b04-4168-b8a4-007215dd4a08",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "aplite",
+      "basalt",
+      "chalk",
+      "diorite",
+      "emery",
+      "flint",
+      "gabbro"
+    ],
+    "watchapp": {
+      "watchface": false
+    },
+    "capabilities": [],
+    "usesPermissions": [],
+    "messageKeys": [
+      "cmd",
+      "idx",
+      "total",
+      "name",
+      "room",
+      "state",
+      "bright",
+      "value",
+      "status"
+    ],
+    "resources": {
+      "media": []
+    }
+  }
+}
