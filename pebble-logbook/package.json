@@ -1,6 +1,56 @@
 {
-  "name": "pebble-logbook-phone",
-  "private": true,
-  "description": "Tests for the Logbook watch app's phone-side code",
-  "scripts": { "test": "node --test test/*.test.cjs" }
+    "author": "you",
+    "dependencies": {},
+    "keywords": [
+        "pebble-app"
+    ],
+    "name": "logbook",
+    "scripts": {
+        "test": "node --test test/*.test.cjs"
+    },
+    "pebble": {
+        "capabilities": [
+            "configurable"
+        ],
+        "displayName": "Logbook",
+        "enableMultiJS": true,
+        "messageKeys": [
+            "REQ_TYPE",
+            "REQ_TOKEN",
+            "REQ_KIND",
+            "REQ_ARG",
+            "LOG_REF",
+            "LOG_TITLE",
+            "LOG_STARS",
+            "LOG_TAG",
+            "LOG_NOTE",
+            "LIST_TOKEN",
+            "LIST_TOTAL",
+            "LIST_INDEX",
+            "LIST_LABEL",
+            "LIST_REF",
+            "LIST_FLAGS",
+            "LIST_ERROR"
+        ],
+        "projectType": "native",
+        "resources": {
+            "media": [
+                {
+                    "type": "bitmap",
+                    "name": "MENU_ICON",
+                    "file": "images/menu_icon.png",
+                    "menuIcon": true
+                }
+            ]
+        },
+        "sdkVersion": "3",
+        "targetPlatforms": [
+            "emery"
+        ],
+        "uuid": "5e8c1d3a-7f42-4b6e-9a0d-2c7b8e14f6a9",
+        "watchapp": {
+            "watchface": false
+        }
+    },
+    "version": "1.16.1"
 }
