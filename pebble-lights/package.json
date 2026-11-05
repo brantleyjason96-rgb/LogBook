@@ -1,7 +1,7 @@
 {
   "name": "pebble-lights",
   "author": "Jason",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "keywords": [
     "pebble-app"
   ],
@@ -30,15 +30,27 @@
     "capabilities": [],
     "usesPermissions": [],
     "messageKeys": [
-      "cmd",
+      "kind",
       "idx",
-      "total",
       "name",
       "room",
       "state",
       "bright",
+      "temp",
+      "set",
+      "mode",
+      "thermo",
+      "first",
+      "count",
+      "text",
+      "sub",
+      "ok",
+      "undo",
+      "cmd",
       "value",
-      "status"
+      "say",
+      "rooms",
+      "lights"
     ],
     "resources": {
       "media": []
