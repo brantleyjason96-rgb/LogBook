@@ -39,7 +39,7 @@ function load(storage) {
     sendAppMessage: (m, ok) => { sent.push(m); setImmediate(ok); },
     sendConfigMessage: (m) => pushed.push(m),
     subscribeToSource: (cfg) => { subs[cfg.item] = cfg; return { unsubscribe() {} }; },
-    invokeAction: (c) => { calls.push(c); return Promise.resolve({ ok: !(t.failing && t.failing(c) === false) }); },
+    invokeAction: (c) => { calls.push(c); if (t.gate) return t.gate(c); return Promise.resolve({ ok: !(t.failing && t.failing(c) === false) }); },
   };
   const localStorage = { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); } };
   const ctx = { Pebble, localStorage, console: { log() {} }, setTimeout, Promise, module: { exports: {} } };
@@ -355,4 +355,111 @@ test('failures are reported and change nothing; dimming a non-dimmable light and
   t2.subs.device.onData({ instances: [light('1', 'Lamp', 'Den', true, 50, 'light', false)] }); await tick();
   await say(t2, 'turn off the den lights', -1);
   assert.match(result(t2).text, /offline/i);
+});
+
+// ---------------------------------------------------------------- speed
+
+/** A plugin whose calls stay open until the test lets them finish. */
+function gated(t) {
+  const open = [];
+  let live = 0, peak = 0;
+  t.gate = (c) => new Promise((resolve) => { live++; peak = Math.max(peak, live); open.push({ c, done: (r) => { live--; resolve(r); } }); });
+  return { open, peak: () => peak, finish: (i, r = { ok: true }) => open[i].done(r) };
+}
+
+test('speed: the watch sees a tap\'s result at once, before Google has answered', async () => {
+  const t = await ready();
+  const g = gated(t);
+  clear(t);
+  t.handlers.appmessage({ payload: { cmd: 1, list: 0, idx: 3 } });          // Living room toggles
+  await tick(30);
+  assert.equal(g.open.length, 4, 'four calls started');
+  assert.ok(rowsOf(t, 0).some((r) => r.idx === 3 && r.state === 0 && r.sub === '0/4 68\u00b0'), 'row already updated while calls are still open');
+  g.open.forEach((_, i) => g.finish(i));
+  await tick(30);
+});
+
+test('speed: a failed change is put right by re-reading the real state', async () => {
+  const t = await ready();
+  const g = gated(t);
+  clear(t);
+  t.handlers.appmessage({ payload: { cmd: 1, list: 0, idx: 3 } });
+  await tick(30);
+  g.open.forEach((_, i) => g.finish(i, { ok: false, code: 'PLUGIN_UNAVAILABLE' }));
+  await tick(30);
+  t.gate = null;
+  t.subs.device.onData(HOME);                                                // what the plugin would report back
+  await tick(30);
+  const last = rowsOf(t, 0).filter((r) => r.idx === 3).pop();
+  assert.deepEqual([last.state, last.sub], [1, '3/4 68\u00b0'], 'row restored');
+});
+
+test('speed: a quick second tap turns the light back, because the phone already knows the first', async () => {
+  const t = await ready();
+  const g = gated(t);
+  await hold(t, 0, 3);
+  clear(t);
+  t.handlers.appmessage({ payload: { cmd: 1, list: 12, idx: 1 } });          // Floor lamp, on -> off
+  t.handlers.appmessage({ payload: { cmd: 1, list: 12, idx: 1 } });          // again, before Google replied
+  await tick(30);
+  assert.deepEqual(g.open.map((o) => o.c.action), ['turn_off', 'turn_on']);
+  g.open.forEach((_, i) => g.finish(i));
+  await tick(30);
+});
+
+test('speed: the plugin refreshing after every action neither clears queued messages nor resends whole lists', async () => {
+  const t = await ready();
+  await tap(t, 0, 6);                                                        // a scene: queues a result card
+  t.sent.length = 0;
+  t.handlers.appmessage({ payload: { cmd: 7, say: 'turn off the lamp', value: -1 } });   // queues "Which one?" choices
+  t.subs.device.onData(HOME);                                               // the plugin's refresh lands straight away
+  await tick(80);
+  assert.equal(msg(t, 6).length, 3, 'choices were not thrown away');
+  assert.equal(msg(t, 10).length, 0, 'no list restart');
+  assert.equal(rowsOf(t, 0).length, 0, 'no row resent: nothing changed');
+});
+
+test('speed: a refresh that changes the home itself does resend the lists', async () => {
+  const t = await ready();
+  clear(t);
+  t.subs.device.onData({ instances: HOME.instances.filter((i) => i.instanceId !== '9') });   // Desk light removed
+  await tick(60);
+  assert.equal(msg(t, 10).length, 1);
+  assert.equal(msg(t, 10)[0].list, 0);
+});
+
+test('speed: recovering from an error resends the home list in full', async () => {
+  const t = await ready();
+  t.subs.device.onError({ code: 'NETWORK' }); await tick();
+  clear(t);
+  t.subs.device.onData(HOME); await tick(60);
+  assert.equal(msg(t, 10)[0].count, 9);
+  assert.equal(rowsOf(t, 0).length, 9);
+});
+
+test('speed: many lights change in parallel, six at a time, all shown at once', async () => {
+  const t = await ready();
+  const g = gated(t);
+  clear(t);
+  t.handlers.appmessage({ payload: { cmd: 1, list: 0, idx: 0 } });          // All lights off (6 are on)
+  await tick(30);
+  assert.equal(g.open.length, 6);
+  assert.equal(g.peak(), 6);
+  assert.deepEqual(rowsOf(t, 0).find((r) => r.idx === 0), { kind: 11, list: 0, idx: 0, name: 'All lights off', sub: '', state: 0, type: 5, adj: 0 });
+  g.open.forEach((_, i) => g.finish(i));
+  await tick(30);
+});
+
+test('speed: a rate-limited call is retried once and then succeeds', async () => {
+  const t = await ready();
+  let n = 0;
+  t.gate = () => Promise.resolve(n++ === 0 ? { ok: false, code: 'RATE_LIMITED' } : { ok: true });
+  clear(t);
+  const started = Date.now();
+  t.handlers.appmessage({ payload: { cmd: 1, list: 0, idx: 0 } });
+  await tick(50);
+  assert.ok(n >= 6, 'first batch started');
+  await tick(900);                                                           // retry waits 600 ms
+  assert.equal(t.calls.length, 7, 'exactly one retry');
+  assert.ok(Date.now() - started >= 600);
 });

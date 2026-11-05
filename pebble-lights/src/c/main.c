@@ -45,7 +45,7 @@
 #define TYPE_ALL_OFF 5
 
 #define ROW_H 34
-#define SEND_DELAY_MS 650
+#define SEND_DELAY_MS 450
 #define TEMP_MIN 50
 #define TEMP_MAX 90
 #define VOICE_CLOSE_MS 12000
@@ -129,29 +129,56 @@ static const char *get_str(DictionaryIterator *it, uint32_t key) {
   return t ? t->value->cstring : "";
 }
 
-static void send_cmd(int cmd, int a, int b) {
+// Commands wait in a small queue, so a quick second press is not lost while the first message is still being sent.
+typedef struct {
+  int8_t cmd;
+  int16_t list;   // -1 = not sent
+  int16_t idx;    // -1 = not sent
+  int16_t value;  // -1 = not sent
+} Cmd;
+#define CMD_QUEUE 8
+static Cmd s_cq[CMD_QUEUE];
+static int s_cq_n = 0;
+static AppTimer *s_cq_timer;
+
+static void cq_pump(void);
+static void cq_retry(void *data) {
+  s_cq_timer = NULL;
+  cq_pump();
+}
+static void cq_pump(void) {
+  if (s_cq_n == 0) return;
   DictionaryIterator *iter;
-  if (app_message_outbox_begin(&iter) != APP_MSG_OK) {
-    vibes_short_pulse();  // phone link busy or down: the press didn't go through
+  AppMessageResult r = app_message_outbox_begin(&iter);
+  if (r == APP_MSG_BUSY) {  // the previous message is still going out: try again shortly
+    if (!s_cq_timer) s_cq_timer = app_timer_register(30, cq_retry, NULL);
     return;
   }
-  dict_write_int32(iter, MESSAGE_KEY_cmd, cmd);
-  if (a >= 0) dict_write_int32(iter, MESSAGE_KEY_list, a);
-  if (b >= 0) dict_write_int32(iter, MESSAGE_KEY_idx, b);
+  Cmd c = s_cq[0];
+  memmove(&s_cq[0], &s_cq[1], sizeof(Cmd) * (s_cq_n - 1));
+  s_cq_n--;
+  if (r != APP_MSG_OK) {
+    vibes_short_pulse();  // phone link down: this press did not go through
+    cq_pump();
+    return;
+  }
+  dict_write_int32(iter, MESSAGE_KEY_cmd, c.cmd);
+  if (c.list >= 0) dict_write_int32(iter, MESSAGE_KEY_list, c.list);
+  if (c.idx >= 0) dict_write_int32(iter, MESSAGE_KEY_idx, c.idx);
+  if (c.value >= 0) dict_write_int32(iter, MESSAGE_KEY_value, c.value);
   app_message_outbox_send();
 }
+static void cq_add(int cmd, int list, int idx, int value) {
+  if (s_cq_n >= CMD_QUEUE) {
+    vibes_short_pulse();  // far more presses than the phone can take: drop this one
+    return;
+  }
+  s_cq[s_cq_n++] = (Cmd){.cmd = (int8_t)cmd, .list = (int16_t)list, .idx = (int16_t)idx, .value = (int16_t)value};
+  cq_pump();
+}
+static void send_cmd(int cmd, int list, int idx) { cq_add(cmd, list, idx, -1); }
 // Commands that carry an index and a value rather than a list and a row.
-static void send_val(int cmd, int idx, int value) {
-  DictionaryIterator *iter;
-  if (app_message_outbox_begin(&iter) != APP_MSG_OK) {
-    vibes_short_pulse();
-    return;
-  }
-  dict_write_int32(iter, MESSAGE_KEY_cmd, cmd);
-  dict_write_int32(iter, MESSAGE_KEY_idx, idx);
-  dict_write_int32(iter, MESSAGE_KEY_value, value);
-  app_message_outbox_send();
-}
+static void send_val(int cmd, int idx, int value) { cq_add(cmd, -1, idx, value); }
 static void send_say(const char *text, int room) {
   DictionaryIterator *iter;
   if (app_message_outbox_begin(&iter) != APP_MSG_OK) {
@@ -163,9 +190,11 @@ static void send_say(const char *text, int room) {
   if (room >= 0) dict_write_int32(iter, MESSAGE_KEY_value, room);
   app_message_outbox_send();
 }
+static void outbox_sent(DictionaryIterator *iter, void *ctx) { cq_pump(); }
 static void outbox_failed(DictionaryIterator *iter, AppMessageResult reason, void *ctx) {
   APP_LOG(APP_LOG_LEVEL_WARNING, "send failed: %d", (int)reason);
   vibes_short_pulse();
+  cq_pump();
 }
 
 static ListWin *lw_find(int id) {
@@ -861,6 +890,7 @@ static void init(void) {
   // Callbacks first, then open. Inbox holds one phone message (the longest is a result card), outbox one command
   // or one spoken sentence.
   app_message_register_inbox_received(inbox_received);
+  app_message_register_outbox_sent(outbox_sent);
   app_message_register_outbox_failed(outbox_failed);
   app_message_open(256, 200);
 
@@ -879,6 +909,7 @@ static void deinit(void) {
   if (s_dict) dictation_session_destroy(s_dict);
 #endif
   if (s_v_timer) app_timer_cancel(s_v_timer);
+  if (s_cq_timer) app_timer_cancel(s_cq_timer);
   if (s_choice_window) window_destroy(s_choice_window);
   if (s_voice_window) window_destroy(s_voice_window);
   if (s_th_window) window_destroy(s_th_window);

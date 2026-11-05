@@ -45,6 +45,21 @@ On a room or thermostat screen, "turn them off" and "dim it to 20" apply to the 
 The parser is plain rules, not AI (`parseVoice` in `src/pkjs/index.js`): it matches your real room, light and scene names, understands
 number words ("forty five"), and prefers the longer name ("floor lamp" beats "lamp"). Temperatures are whole degrees Fahrenheit, 50 to 90.
 
+## Speed
+What happens when you tap a light: the watch shows the new state at once, the phone shows it at once too and then asks Google, and a
+failure puts the real state back. Several things keep that quick:
+- Room and all-off changes send up to 6 requests to Google in parallel, all shown on the watch together, with one retry if Google
+  rate-limits.
+- The plugin refreshes its data after every action; the app now sends only the rows that changed instead of resending whole lists, and
+  never discards a message that is waiting (such as a voice result).
+- Button presses queue on the watch, so a quick second press is not lost while the first is still being sent.
+- A quick second tap on the same light turns it back, because the phone already knows about the first.
+- Brightness and thermostat changes are sent 450 ms after your last press.
+
+The time between your tap and the bulb itself is mostly the Google Home plugin: each action signs in again, looks up the whole home,
+then sends the command, one device after another. Caching the sign-in and the home lookup there, and controlling devices in parallel,
+would help most. That change belongs in the plugin (coredevices/pebble-apps), not this app.
+
 ## How it is built
 The **phone builds every list** and sends rows (`title`, state text, state, type); the **watch only draws rows** and reports taps
 and holds. That keeps the watch code small and puts the logic where it is tested. Only rows that changed are sent after an action.
@@ -60,7 +75,8 @@ Phone-side tests (no SDK needed): `npm test`
 
 ## Status
 - **Tested:** the phone side, against a mocked plugin: lists and favourites, taps and holds, only-changed-rows updates, settings
-  save/load/reset and bad values, hidden items, scenes, about 40 spoken phrases, undo, "which one?", failures. The settings page was
+  save/load/reset and bad values, hidden items, scenes, about 40 spoken phrases, undo, "which one?", failures, and the speed behaviours
+  above (28 tests; five of them fail against the previous version). The watch's press queue was run in a small C harness with a fake busy outbox. The settings page was
   driven in a real browser (add, reorder, rename, remove, hide, steps, reset; phone width and dark mode).
 - **Not tested:** the C watch app has not been built with the real SDK or run in the emulator. It compiles cleanly (`-Wall -Wextra`)
   against a hand-written stub of the Pebble API, with and without a microphone. Expect small build fixes on the first `pebble build`.

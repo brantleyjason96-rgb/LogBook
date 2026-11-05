@@ -27,7 +27,8 @@ var MODE_LABEL = ['Heat', 'Cool', 'Eco', 'Off'];
 var TEMP_MIN = 50, TEMP_MAX = 90;
 var STEP = 20;          // "dim" / "brighten" with no number, in percentage points
 var WARMER = 2;         // "warmer" / "cooler", in degrees F
-var POOL = 4;           // parallel plugin calls when changing many lights
+var POOL = 6;           // parallel plugin calls when changing many lights (each call pays its own sign-in and lookup)
+var RETRY_MS = 600;     // wait before retrying a call Google rate-limited
 
 var st = { rooms: [], lights: [], thermos: [], scenes: [] };
 var cfg = defaultConfig();
@@ -315,9 +316,12 @@ function listClosed(id) {
 
 // ---------------------------------------------------------------- doing things
 
-function run(action, args) {
+function run(action, args, retried) {
   return Pebble.invokeAction({ plugin: GOOGLE_HOME_PLUGIN, action: action, args: args }).then(function (r) {
     log(action + (r.ok ? ' ok' : ' failed: ' + r.code));
+    if (!r.ok && r.code === 'RATE_LIMITED' && !retried) {
+      return new Promise(function (resolve) { setTimeout(resolve, RETRY_MS); }).then(function () { return run(action, args, true); });
+    }
     return !!r.ok;
   });
 }
@@ -353,10 +357,8 @@ function thermoArgs(t) {
 
 function setPower(j, on) {
   var l = st.lights[j];
-  return run(on ? 'turn_on' : 'turn_off', lightArgs(l)).then(function (ok) {
-    if (ok) l.on = on;
-    return ok;
-  });
+  l.on = on;   // optimistic: a quick second tap must see this change, not wait for Google
+  return run(on ? 'turn_on' : 'turn_off', lightArgs(l));
 }
 function setBright(j, pct) {
   var l = st.lights[j];
@@ -402,7 +404,9 @@ function afterChange(ok) {
 function toggle(j) {
   var l = st.lights[j];
   if (!l || !l.online) return;
-  setPower(j, !l.on).then(afterChange);
+  var p = setPower(j, !l.on);
+  refreshLists(false);   // the watch sees the new state now; a failure re-reads the real one
+  p.then(function (ok) { if (!ok) resubscribe(); });
 }
 function brightness(j, v) {
   var l = st.lights[j];
@@ -414,12 +418,18 @@ function toggleGroup(idxs) {
   idxs = idxs.filter(function (j) { return st.lights[j].online; });
   if (!idxs.length) return;
   var turnOn = !idxs.some(function (j) { return st.lights[j].on; });
-  pool(idxs, function (j) { return setPower(j, turnOn); }).then(function () { refreshLists(false); });
+  idxs.forEach(function (j) { st.lights[j].on = turnOn; });   // show the whole result at once, not as the pool starts each call
+  var p = pool(idxs, function (j) { return setPower(j, turnOn); });
+  refreshLists(false);
+  p.then(function (done) { if (done < idxs.length) resubscribe(); });
 }
 function allOff() {
   var idxs = allVisibleLights().filter(function (j) { return st.lights[j].online && st.lights[j].on; });
   if (!idxs.length) return;
-  pool(idxs, function (j) { return setPower(j, false); }).then(function () { refreshLists(false); });
+  idxs.forEach(function (j) { st.lights[j].on = false; });
+  var p = pool(idxs, function (j) { return setPower(j, false); });
+  refreshLists(false);
+  p.then(function (done) { if (done < idxs.length) resubscribe(); });
 }
 function runScene(s) {
   return run('run_automation', { name: s.name }).then(function (ok) {
@@ -741,15 +751,31 @@ function onConfigMessage(e) {
 
 // ---------------------------------------------------------------- wiring
 
+/** Rooms, lights and thermostats by identity, ignoring their current state. */
+function shapeOf(s) {
+  return JSON.stringify([
+    s.rooms.map(function (r) { return [r.name, r.first, r.count, r.thermo]; }),
+    s.lights.map(function (l) { return [l.id, l.name, l.online]; }),
+    s.thermos.map(function (t) { return [t.id, t.name]; }),
+  ]);
+}
 function onDevices(envelope) {
   var parsed = parseEnvelope(envelope);
+  var hadLights = st.rooms.length > 0;
+  var before = shapeOf(st);
   st.rooms = parsed.rooms; st.lights = parsed.lights; st.thermos = parsed.thermos;
   applyHidden();
   log(st.rooms.length + ' room(s), ' + st.lights.length + ' light(s), ' + st.thermos.length + ' thermostat(s)');
-  sent = {};
-  queue = [];
-  if (!st.rooms.length) enqueue({ kind: 5, text: 'No lights found. Check the Google Home plugin.' });
-  else refreshLists(true);
+  if (!st.rooms.length) {
+    sent = {};
+    enqueue({ kind: 5, text: 'No lights found. Check the Google Home plugin.' });
+  } else {
+    // The plugin refreshes this source after every action. Send only what changed, and never drop queued messages
+    // (a result card may be waiting). Resend whole lists only if the shape of the home changed or we had nothing before.
+    var full = !hadLights || shapeOf(st) !== before;
+    if (full) sent = {};
+    refreshLists(false);
+  }
   pushCatalogueToPage();
 }
 function onScenes(envelope) {
@@ -760,7 +786,7 @@ function onScenes(envelope) {
 function onError(err) {
   log('source error: ' + (err && err.code));
   st.rooms = []; st.lights = []; st.thermos = [];
-  queue = [];
+  sent = {};
   enqueue({ kind: 5, text: 'Google Home: ' + ((err && err.code) || 'error') });
 }
 function subscribe() {
