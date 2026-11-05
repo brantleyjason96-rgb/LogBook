@@ -90,3 +90,8 @@ Only active on watches with a touchscreen and with touch on in the watch's setti
 - Settings page (opened from the Pebble app) > **History** > the **Bookmarks and notes** chip (now first in the chip row) lists every mark and note, newest first: the item, a Mark / Bookmark / Note label, the playing track (a note symbol), the position or page if there is one, your note, and the date. **Delete** removes one (press Save to apply). The search box now searches this list too (item, note, track, position).
 - `config_html.js` was edited directly. It is generated from `tools/config.html` (not in this project), so make the same change there or a regenerate will undo it: the `renderMarks`, `renderList` (marks subtitle) and `renderChips` functions.
 
+## 1.18.2 - time of day on marks (settings page)
+
+- Each mark on the settings page now shows the clock time next to the date, so several marks on one item the same day can be told apart.
+- Playback position (where you are in the episode) is still missing: the Core Pebble app's playback status has `playbackPositionMs`, but its Music plugin (`MusicPlugin.kt`, `toEnvelope`) does not publish it. If a future plugin version adds a position property, set `CONFIG.keys.position` (and `positionUnit`) in `nowplaying.js`; nothing else needs to change.
+
