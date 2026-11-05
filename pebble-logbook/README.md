@@ -15,6 +15,10 @@ built-in **Music** plugin (UUID `00000000-0000-0000-0001-000000000003`, source `
 - nothing playing, paused, plugin error, or no answer within 1.5 s: saved exactly as before;
 - a position you say yourself ("20 minutes in") always wins and the plugin is not asked.
 
+### Now-playing card (1.18.0)
+
+Open Reflect while something plays: the first row is the track. Tap it to mark the spot and say a note about it. The plugin has no playback position, so the card shows the track and Playing/Paused, not where you are in the episode.
+
 ### Marks and notes (1.17.0)
 
 - Reflect > the item > **Mark this spot** adds a mark every press (as many as you like per podcast); each keeps the time and the playing track.

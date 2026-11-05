@@ -8,9 +8,9 @@ const SRC = path.join(__dirname, '../src/pkjs');
 const tick = (ms = 30) => new Promise((r) => setTimeout(r, ms));
 
 function boot(opts = {}) {
-  const sent = [], store = Object.assign({}, opts.store), modules = {};
+  const sent = [], asked = [], store = Object.assign({}, opts.store), modules = {};
   const Pebble = { addEventListener() {}, sendAppMessage: (m, ok) => { sent.push(m); setImmediate(ok); },
-    subscribeToSource: (cfg) => { if (opts.answer) setImmediate(() => cfg.onData(opts.answer)); return { unsubscribe() {} }; } };
+    subscribeToSource: (cfg) => { asked.push(cfg); if (opts.answer === 'error') setImmediate(() => cfg.onError({})); else if (opts.answer) setImmediate(() => cfg.onData(opts.answer)); return { unsubscribe() {} }; } };
   const localStorage = { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); } };
   const req = (name) => {
     const f = path.join(SRC, name.replace('./', '') + '.js');
@@ -20,9 +20,9 @@ function boot(opts = {}) {
   };
   if (!opts.answer) req('./nowplaying').CONFIG.plugin = '';
   const body = fs.readFileSync(path.join(SRC, 'index.js'), 'utf8') +
-    '\nreturn { addMark: addMark, addBookmark: addBookmark, noteEntries: noteEntries, markEntries: markEntries, state: state };';
+    '\nreturn { addMark: addMark, addBookmark: addBookmark, noteEntries: noteEntries, markEntries: markEntries, reflectRows: reflectRows, state: state };';
   const api = new Function('require', 'Pebble', 'localStorage', 'console', 'setTimeout', 'clearTimeout', body)(req, Pebble, localStorage, { log() {} }, setTimeout, clearTimeout);
-  return { api, sent, store };
+  return { api, sent, store, asked };
 }
 const flashes = (t) => t.sent.map((m) => m.LIST_LABEL).filter(Boolean);
 const playing = { instances: [{ properties: { title: { shortText: { text: 'Episode 12' } }, artist: { shortText: { text: 'A Show' } }, playing: { boolean: { value: true } } } }] };
@@ -90,4 +90,55 @@ test('a note about a different item or a person never attaches to the mark', asy
   t.api.addMark('n:maria', 'Maria', 'coffee', true); await tick();
   assert.equal(t.api.state.marks.length, 3);
   assert.equal(t.api.state.marks.find((x) => x.ref === 'p:1').note, '');
+});
+
+// ---- the now-playing card at the top of Reflect
+const show = (o) => ({ instances: [{ properties: {
+  title: { shortText: { text: o.title } }, artist: { shortText: { text: o.artist || '' } }, album: { shortText: { text: o.album || '' } },
+  playing: { boolean: { value: o.playing !== false } } } }] });
+const LOG = { store: { log: JSON.stringify([
+  { ref: 'p:111', title: 'Radiolab', cat: 'podcast', stars: 4, ts: Date.now() - 1000 },
+  { ref: 'b:333', title: 'Dune', cat: 'book', stars: 5, ts: Date.now() - 2000 }]) } };
+const rowsOf = (t) => new Promise((res) => t.api.reflectRows(res));
+
+test('card: first row is the track, tied to the logged item whose title matches the album', async () => {
+  const t = boot({ ...LOG, answer: show({ title: 'The Fact of the Matter', artist: 'WNYC', album: 'Radiolab' }) });
+  const rows = await rowsOf(t);
+  assert.deepEqual(rows[0], { label: 'The Fact of the Matter', ref: 'np:p:111', flags: 0 });
+  assert.deepEqual(rows.slice(1).map((r) => r.ref), ['p:111', 'b:333'], 'your ratings follow, unchanged');
+});
+
+test('card: paused shows (flag 8), and a show with no match becomes its own item', async () => {
+  const t = boot({ ...LOG, answer: show({ title: 'Ep 5', album: 'Brand New Show', playing: false }) });
+  const rows = await rowsOf(t);
+  assert.deepEqual([rows[0].label, rows[0].ref, rows[0].flags], ['Ep 5', 'np:x:brand-new-show', 8]);
+});
+
+test('card: nothing playing, plugin error, or feature off gives the plain Reflect list', async () => {
+  for (const o of [{ answer: { instances: [] } }, { answer: 'error' }, {}]) {
+    const t = boot({ ...LOG, ...o });
+    const rows = await rowsOf(t);
+    assert.deepEqual(rows.map((r) => r.ref), ['p:111', 'b:333']);
+  }
+});
+
+test('tapping the card marks the item with the track (even if paused) and a note then goes on that mark', async () => {
+  const t = boot({ store: { ...LOG.store, ...SHEETS.store }, answer: show({ title: 'The Fact of the Matter', artist: 'WNYC', album: 'Radiolab', playing: false }) });
+  const card = (await rowsOf(t))[0];
+  const asked = t.asked.length;
+  t.api.addBookmark(card.ref.slice(3), card.label); await tick();       // what the watch sends for a tap
+  assert.equal(t.asked.length, asked, 'no second plugin call: the card is what gets marked');
+  const mk = t.api.state.marks[0];
+  assert.deepEqual([mk.ref, mk.title, mk.marked, mk.track], ['p:111', 'Radiolab', true, 'WNYC - The Fact of the Matter']);
+  t.api.addMark('p:111', card.label, 'great point about glaciers'); await tick();   // what the watch sends after dictation
+  assert.equal(t.api.state.marks.length, 1);
+  assert.equal(t.api.state.marks[0].note, 'great point about glaciers');
+  assert.deepEqual(flashes(t).slice(-1), ['Note added to mark']);
+});
+
+test('tapping the card for a new show names the item after the album', async () => {
+  const t = boot({ ...LOG, answer: show({ title: 'Ep 5', album: 'Brand New Show' }) });
+  const card = (await rowsOf(t))[0];
+  t.api.addBookmark(card.ref.slice(3), card.label); await tick();
+  assert.deepEqual([t.api.state.marks[0].ref, t.api.state.marks[0].title], ['x:brand-new-show', 'Brand New Show']);
 });

@@ -16,6 +16,7 @@ var CONFIG = {
   keys: {                      // property names in the plugin's data
     title: 'title',
     artist: 'artist',
+    album: 'album',            // for a podcast app this is usually the show
     position: '',              // the plugin does not publish one today; name it here if that changes
     playing: 'playing'
   },
@@ -36,24 +37,27 @@ function field(props, key, kind) {
   return v.text !== undefined ? v.text : v.value;
 }
 
-// Plugin data -> { title, artist, position (whole seconds, or null), playing } or null when
-// nothing is playing or there is no title to show.
-function parse(envelope) {
+// Plugin data -> { title, artist, album, position (whole seconds, or null), playing } or null when
+// nothing is playing or there is no title to show. Paused counts as nothing unless keepPaused
+// (the Reflect card shows a paused episode, because that is when you stop to write a note).
+function parse(envelope, keepPaused) {
   var inst = envelope && envelope.instances && envelope.instances[0];
   if (!inst) return null;
   var props = inst.properties || {}, k = CONFIG.keys;
   var title = String(field(props, k.title) || '').replace(/\s+/g, ' ').trim();
   if (!title || title === '?') return null;               // the plugin sends "?" when it has no title
   var playing = field(props, k.playing, 'boolean');       // also sent as the text "Playing"/"Paused"
-  if (playing === false) return null;                     // paused or stopped: not "what I am listening to"
+  if (playing === false && !keepPaused) return null;      // paused: not "what I am listening to"
   var artist = String(field(props, k.artist) || '').replace(/\s+/g, ' ').trim();
   if (artist === '?') artist = '';
+  var album = String(field(props, k.album) || '').replace(/\s+/g, ' ').trim();
+  if (album === '?') album = '';
   var pos = field(props, k.position);
   var position = null;
   if (typeof pos === 'number' && isFinite(pos) && pos >= 0) {
     position = Math.floor(CONFIG.positionUnit === 'ms' ? pos / 1000 : pos);
   }
-  return { title: title, artist: artist, position: position, playing: playing !== false };
+  return { title: title, artist: artist, album: album, position: position, playing: playing !== false };
 }
 
 function two(n) { return (n < 10 ? '0' : '') + n; }
@@ -70,7 +74,9 @@ function label(np) {
 
 // Asks the plugin once, then calls cb(np) with parse()'s result, or cb(null) when the feature is
 // off, the plugin errors, or it does not answer in time. cb is called exactly once.
-function read(cb) {
+// opts (optional): { timeoutMs, keepPaused }
+function read(cb, opts) {
+  opts = opts || {};
   if (!enabled() || typeof Pebble === 'undefined' || !Pebble.subscribeToSource) { cb(null); return; }
   var done = false, sub = null, timer = null;
   function finish(np) {
@@ -83,8 +89,8 @@ function read(cb) {
   try {
     sub = Pebble.subscribeToSource({
       category: CONFIG.category, item: CONFIG.item, plugin: CONFIG.plugin,
-      properties: [CONFIG.keys.title, CONFIG.keys.artist, CONFIG.keys.position, CONFIG.keys.playing].filter(Boolean),
-      onData: function (envelope) { var np = null; try { np = parse(envelope); } catch (e) {} finish(np); },
+      properties: [CONFIG.keys.title, CONFIG.keys.artist, CONFIG.keys.album, CONFIG.keys.position, CONFIG.keys.playing].filter(Boolean),
+      onData: function (envelope) { var np = null; try { np = parse(envelope, opts.keepPaused); } catch (e) {} finish(np); },
       onError: function () { finish(null); }
     });
   } catch (e) {
@@ -92,7 +98,7 @@ function read(cb) {
     return;
   }
   if (done) { try { if (sub && sub.unsubscribe) sub.unsubscribe(); } catch (e) {} return; }   // answered before we had the handle
-  timer = setTimeout(function () { finish(null); }, CONFIG.timeoutMs);
+  timer = setTimeout(function () { finish(null); }, opts.timeoutMs || CONFIG.timeoutMs);
 }
 
 module.exports = { CONFIG: CONFIG, enabled: enabled, parse: parse, read: read, label: label, fmtSeconds: fmtSeconds };

@@ -55,7 +55,7 @@ const flashes = (t) => t.sent.map((m) => m.LIST_LABEL).filter(Boolean);
 test('parse: position in seconds, artist and title', () => {
   const { np } = boot();
   const r = np.parse(track({ title: 'Heavy Rotation', artist: 'Some Band', position: 754, playing: true }));
-  assert.deepEqual(r, { title: 'Heavy Rotation', artist: 'Some Band', position: 754, playing: true });
+  assert.deepEqual(r, { title: 'Heavy Rotation', artist: 'Some Band', album: '', position: 754, playing: true });
 });
 test('parse: milliseconds are converted when the unit is ms', () => {
   const { np } = boot();
@@ -168,7 +168,7 @@ test('shipped settings subscribe to music/track on the built-in Music plugin', a
   await tick();
   const s = t.subscribed[0];
   assert.deepEqual([s.plugin, s.category, s.item], ['00000000-0000-0000-0001-000000000003', 'music', 'track']);
-  assert.deepEqual(s.properties, ['title', 'artist', 'playing']);
+  assert.deepEqual(s.properties, ['title', 'artist', 'album', 'playing']);
 });
 
 test('real plugin: no position, so the track alone is kept and shown', async () => {

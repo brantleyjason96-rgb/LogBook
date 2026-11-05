@@ -1092,6 +1092,11 @@ function attachNote(mk, note) {
   sendFlash('Note added to mark');
 }
 
+function applyNowPlaying(mark, np) {
+  mark.track = nowplaying.label(np);
+  if (np.position !== null) mark.pos = nowplaying.fmtSeconds(np.position);
+}
+
 // marked: this is a bookmark press ("Mark this spot"), not words you said.
 function addMark(ref, watchTitle, text, raw, marked) {
   var p = raw ? { pos: '', note: clean(text, NOTE_MAX) } : parseSpoken(text);
@@ -1117,14 +1122,17 @@ function addMark(ref, watchTitle, text, raw, marked) {
     ts: Date.now()
   };
   if (marked) mark.marked = true;
+  // Marked from the now-playing card a moment ago: use what the card showed (even if paused since).
+  if (marked && lastNow && lastNow.ref === ref && Date.now() - lastNow.at < 120000) {
+    applyNowPlaying(mark, lastNow.np);
+    commitMark(mark, raw);
+    return;
+  }
   // Nothing said about where you are: ask the music plugin what is playing. A position from the
   // plugin fills "pos"; with no position the track is kept on its own. The mark is saved either way.
   if (!raw && !p.pos && mark.cat !== 'person' && mark.cat !== 'thought' && nowplaying.enabled()) {
     nowplaying.read(function (np) {
-      if (np) {
-        mark.track = nowplaying.label(np);
-        if (np.position !== null) mark.pos = nowplaying.fmtSeconds(np.position);
-      }
+      if (np) applyNowPlaying(mark, np);
       commitMark(mark, raw);
     });
     return;
@@ -1228,6 +1236,46 @@ function noteTargets() {
     rows.push(entry(r.title, r.ref, 0));
   });
   return rows;
+}
+
+// ---- the now-playing card at the top of Reflect
+// What is playing becomes the first Reflect row. Tapping it (on the watch) marks this spot and listens
+// for a note about it. The mark belongs to an item: a logged one whose title matches the album (a
+// podcast's show) or the artist, else a new one named after the album or track.
+var lastNow = null;           // { ref, np, at }: the card last shown, so the tap marks what it showed
+
+function slugOfTitle(t) { return norm(t).replace(/ /g, '-').slice(0, 30) || 'item'; }
+
+function nowItem(np) {
+  var names = [np.album, np.artist].map(norm).filter(Boolean), log = state.log.slice().sort(function (a, b) { return b.ts - a.ts; });
+  for (var i = 0; i < log.length; i++) {
+    var t = norm(log[i].title);
+    if (!t) continue;
+    for (var j = 0; j < names.length; j++) {
+      var n = names[j];
+      if (n === t || (t.length >= 4 && n.length >= 4 && (n.indexOf(t) >= 0 || t.indexOf(n) >= 0))) return { ref: log[i].ref, title: log[i].title };
+    }
+  }
+  var title = np.album || np.title;
+  return { ref: 'x:' + slugOfTitle(title), title: title };
+}
+
+// The card as a list row: label is the track title, ref is "np:" + the item's ref, and flag 8 means paused.
+function nowCard(np) {
+  var item = nowItem(np);
+  if (!meta[item.ref]) meta[item.ref] = { title: item.title, art: '' };
+  lastNow = { ref: item.ref, np: np, at: Date.now() };
+  return { label: clean(np.title, LABEL_MAX), ref: clean('np:' + item.ref, REF_MAX), flags: np.playing ? 0 : F_NOTE_FLAG };
+}
+
+var F_NOTE_FLAG = 8;          // on the card row: the episode is paused (the watch says Paused instead of Now playing)
+
+// Reflect: the card (if something is playing) above your latest ratings. Waits a moment for the plugin.
+function reflectRows(cb) {
+  var rows = reflectEntries();
+  nowplaying.read(function (np) {
+    cb(np ? [nowCard(np)].concat(rows) : rows);
+  }, { timeoutMs: 700, keepPaused: true });
 }
 
 // One press on "Mark this spot": always adds a new mark (with the track that is playing, if any), so one
@@ -1511,7 +1559,7 @@ function handleRequest(p) {
       break;
     }
     case 10: sendList(token, favEntries()); break;
-    case 11: sendList(token, reflectEntries()); break;       // Reflect: latest ratings
+    case 11: reflectRows(function (rows) { sendList(token, rows); }); break;   // Reflect: now-playing card, then latest ratings
     case 12: sendList(token, noteEntries(arg)); break;       // Reflect: what you wrote about one
     case 14: sendList(token, peopleEntries()); break;        // People tile
     case 15: sendList(token, noteTargets()); break;          // Note tile

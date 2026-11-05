@@ -1239,10 +1239,16 @@ static void list_draw_row(GContext *ctx, const Layer *cell, MenuIndex *idx, void
     Entry *en = &w->e[idx->row];
     char title[LABEL_LEN], sub[LABEL_LEN];
     split_label(en->label, title, sizeof(title), sub, sizeof(sub));
+    // Reflect's now-playing card (ref "np:<item>", flag F_NOTE = paused): the track, and what a tap does
+    const bool now_card = strncmp(en->ref, "np:", 3) == 0;
+    if (now_card) {
+      copy_str(title, sizeof(title), en->label);
+      copy_str(sub, sizeof(sub), (en->flags & F_NOTE) ? "Paused. Tap to mark" : "Now playing. Tap to mark");
+    }
     GRect b = layer_get_bounds(cell);
     const bool hi = menu_cell_layer_is_highlighted(cell);
     // entries that carry a ref (the Recent list) get the color of their own kind
-    const GColor kc = kind_color(en->ref[0] ? kind_from_ref(en->ref) : w->kind);
+    const GColor kc = now_card ? kind_color(KIND_REFLECT) : kind_color(en->ref[0] ? kind_from_ref(en->ref) : w->kind);
     const int m = row_margin();
     const int half = en->flags >> F_STARS_SHIFT;   // rating in half stars, 0 if none
     graphics_context_set_fill_color(ctx, hi ? C_FG : C_BG);
@@ -1294,6 +1300,19 @@ static void list_draw_row(GContext *ctx, const Layer *cell, MenuIndex *idx, void
 
 static ListWin *list_push(const char *header, bool is_search, int kind);
 
+// The now-playing card at the top of Reflect: mark this spot, then listen for a note about it.
+// The phone puts the note on the mark it just made. (en->ref is "np:" + the item's ref.)
+static void now_playing_tap(const Entry *en) {
+  const char *ref = en->ref + 3;
+  char arg[ARG_LEN];
+  snprintf(arg, sizeof(arg), "%s|%s", ref, en->label);
+  send_request(REQ_MARK, 0, arg, 0);
+  copy_str(s_note_ref, sizeof(s_note_ref), ref);
+  copy_str(s_note_title, sizeof(s_note_title), en->label);
+  s_dict_mode = 2;
+  dictation_session_start(s_dict);
+}
+
 // Hold Select on a search result: rate it 3 stars straight away and go back to the hub.
 static void quick_rate(const char *ref, const char *label) {
   queue_log(ref, label, 6, "", "");
@@ -1324,6 +1343,10 @@ static void list_long(MenuLayer *ml, MenuIndex *idx, void *data) {
   Entry *en = &w->e[idx->row];
   if (!en->ref[0]) return;
   if (w->mode == MODE_REFLECT) {   // Reflect: hold Select to say a note about this rating
+    if (strncmp(en->ref, "np:", 3) == 0) {   // the now-playing card: same as a tap
+      now_playing_tap(en);
+      return;
+    }
     copy_str(s_note_ref, sizeof(s_note_ref), en->ref);
     copy_str(s_note_title, sizeof(s_note_title), en->label);
     s_dict_mode = 2;
@@ -1571,7 +1594,8 @@ static void list_select(MenuLayer *ml, MenuIndex *idx, void *data) {
     return;
   }
   if (w->mode == MODE_REFLECT) {
-    item_push(en);
+    if (strncmp(en->ref, "np:", 3) == 0) now_playing_tap(en);   // the now-playing card
+    else item_push(en);
     return;
   }
   if (en->flags & F_OPEN) {

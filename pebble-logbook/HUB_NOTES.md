@@ -78,3 +78,10 @@ Only active on watches with a touchscreen and with touch on in the watch's setti
 - A note on a mark keeps the ribbon, and goes to the Sheet as a `note` event with the mark's place and track and `about` set to the mark's event id.
 - Watch change: three label strings in `item_draw_row` (`src/c/main.c`) and one comment. Everything else is phone side. `main.c` was not compiled here.
 
+## 1.18.0 - now-playing card in Reflect
+
+- Open **Reflect** while something is playing and the first row is a card with the track title ("Now playing. Tap to mark", or "Paused. Tap to mark"). **Tap it** (or hold Select): the phone adds a mark with the track, and the watch opens the microphone for a note, which goes on that mark (1.17.0 rule).
+- The mark belongs to an item: your logged item whose title matches the playing album or artist (a podcast's show), else a new item named after the album or track.
+- The plugin does **not** publish playback position, so the card cannot show where you are in the episode. The mark records the track and the time you made it.
+- Phone: `reflectRows`, `nowCard`, `nowItem` (waits up to 0.7 s for the plugin; no card if nothing answers). Watch: `now_playing_tap` and the card row in `list_draw_row` (`src/c/main.c`). Not compiled here.
+
