@@ -160,7 +160,7 @@
   function allEvents() {
     const seen = new Map();
     data.events.forEach(e => seen.set(e.id, e));
-    queue.forEach(q => (q.events || []).forEach(e => seen.set(e.id, { id: e.id, when: e.ts, kind: e.kind, ref: e.ref || '', title: e.title, cat: e.cat, stars: e.stars == null ? null : e.stars, pos: e.pos || '', note: e.note || '', src: e.src || 'phone', pending: true })));
+    queue.forEach(q => (q.events || []).forEach(e => seen.set(e.id, { id: e.id, when: e.ts, kind: e.kind, ref: e.ref || '', title: e.title, cat: e.cat, stars: e.stars == null ? null : e.stars, pos: e.pos || '', track: e.track || '', note: e.note || '', src: e.src || 'phone', pending: true })));
     return [...seen.values()].sort((a, b) => b.when - a.when);
   }
   function model() {
@@ -304,7 +304,7 @@
     const ck = catKey((x && x.cat) || e.cat);
     const title = e.ref ? titleOf(e) : (e.title || 'Thought');
     const link = e.ref ? '<a href="#/e/' + encodeURIComponent(e.ref) + '">' + esc(title) + '</a>' : esc(title);
-    const meta = [fmtTime(e.when), opts.date ? fmtDate(e.when) : '', e.pos ? '@' + e.pos : '', e.src || ''].filter(Boolean).join(' \u00b7 ');
+    const meta = [fmtTime(e.when), opts.date ? fmtDate(e.when) : '', e.pos ? '@' + e.pos : '', e.track ? '\u266a ' + e.track : '', e.src || ''].filter(Boolean).join(' \u00b7 ');
     return '<li class="ev' + (opts.newest ? ' new' : '') + '" data-id="' + esc(e.id) + '"><span class="dot c-' + ck + '"></span><div class="ev-main">' +
       '<div class="ev-title">' + link + '<span class="kind">' + esc(KIND_LABEL[e.kind] || e.kind) + '</span>' +
       (e.stars != null ? ' ' + starsHtml(e.stars, false) : '') + '</div>' +
@@ -394,7 +394,7 @@
     const out = [], seen = new Set();
     model().items.filter(x => catKey(x.cat) !== 'person' && !/^n:/.test(x.ref)).forEach(x => {
       const e = x.events.find(v => v.pos || v.kind === 'bookmark');
-      if (e && daysSince(e.when) <= 90) { seen.add(x.ref); const n = x.events.find(v => v.note && v.kind !== 'bookmark'); out.push({ ref: x.ref, title: x.title, cat: x.cat, where: e.pos ? 'Stopped at ' + e.pos : 'Bookmarked ' + rel(e.when), note: (n && n.note) || (e.kind === 'bookmark' && e.note) || '', when: e.when }); }
+      if (e && daysSince(e.when) <= 90) { seen.add(x.ref); const n = x.events.find(v => v.note && v.kind !== 'bookmark'); out.push({ ref: x.ref, title: x.title, cat: x.cat, where: (e.pos ? 'Stopped at ' + e.pos : 'Bookmarked ' + rel(e.when)) + (e.track ? ' \u00b7 ' + e.track : ''), note: (n && n.note) || (e.kind === 'bookmark' && e.note) || '', when: e.when }); }
     });
     model().items.filter(x => ['tv', 'podcast', 'book', 'game'].indexOf(catKey(x.cat)) >= 0 && !seen.has(x.ref)).forEach(x => {
       const e = x.events[0];
@@ -860,7 +860,7 @@
     const toks = norm(searchQ).split(' ').filter(Boolean);
     if (!toks.length) return '<div class="empty">Search everything you have logged.</div>';
     const m = model();
-    const hay = e => norm([titleOf(e), e.note, e.cat, e.kind, e.pos].join(' '));
+    const hay = e => norm([titleOf(e), e.note, e.cat, e.kind, e.pos, e.track].join(' '));
     const hits = m.events.filter(e => { const h = hay(e); return toks.every(t => h.indexOf(t) >= 0); });
     const items = m.items.filter(x => { const h = norm(x.title + ' ' + x.cat); return toks.every(t => h.indexOf(t) >= 0); }).slice(0, 8);
     return (items.length ? '<h2 style="margin-top:1rem">Matches</h2><div class="chips">' + items.map(x => '<a class="chip" href="#/e/' + encodeURIComponent(x.ref) + '">' + esc(x.title) + '</a>').join('') + '</div>' : '') +
