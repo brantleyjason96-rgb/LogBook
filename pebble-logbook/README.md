@@ -15,6 +15,12 @@ built-in **Music** plugin (UUID `00000000-0000-0000-0001-000000000003`, source `
 - nothing playing, paused, plugin error, or no answer within 1.5 s: saved exactly as before;
 - a position you say yourself ("20 minutes in") always wins and the plugin is not asked.
 
+### Marks and notes (1.17.0)
+
+- Reflect > the item > **Mark this spot** adds a mark every press (as many as you like per podcast); each keeps the time and the playing track.
+- **Add a note** within 10 minutes of a mark puts the note on that mark. A spoken position or a later note makes a separate entry.
+- The Sheet gets the note as a `note` event with `track`, `pos` and `about` (the mark's event id).
+
 The plugin publishes title, artist, album and playing/paused, **not playback position** (checked in the plugin's
 source, `MusicPlugin.kt`), so `pos` stays whatever you said. If a later plugin version adds position, set
 `CONFIG.keys.position` and the code will use it.

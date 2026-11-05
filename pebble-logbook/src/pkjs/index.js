@@ -658,7 +658,7 @@ function markEvent(mk) {
   var tag = '';
   for (var i = 0; i < state.log.length; i++) if (state.log[i].ref === mk.ref) { tag = state.log[i].tag || ''; break; }
   return { id: 'n-' + mk.ts, ts: mk.ts, kind: mk.note ? 'note' : 'bookmark', ref: mk.ref === 'k:thought' ? '' : mk.ref,
-           title: mk.title, cat: tag || mk.cat, pos: mk.pos || '', note: mk.note || '', track: mk.track || '' };
+           title: mk.title, cat: tag || mk.cat, pos: mk.pos || '', note: mk.note || '', track: mk.track || '', about: mk.about || '' };
 }
 
 function evEnqueue(ev) {
@@ -999,6 +999,7 @@ function metToday() {
 // you want to remember: "26 minutes in, the guest starts on glaciers".
 
 var MARK_MAX = 300;
+var MARK_NOTE_WINDOW = 10 * 60 * 1000;   // a note said within this long of marking goes on that mark
 var NOTE_MAX = 250;
 var ONES = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
   eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19 };
@@ -1071,8 +1072,33 @@ function sendFlash(text) {      // the watch shows this briefly (list token 0)
 
 // raw: a note about a person or a loose thought. The words are kept as spoken (no "26 minutes in"
 // parsing) and nothing is counted: a person is not "met" again, a thought is not a rating.
-function addMark(ref, watchTitle, text, raw) {
+// The latest mark on this item, if it is a spot you marked, has no note yet, and was made just now.
+function recentMark(ref) {
+  for (var i = 0; i < state.marks.length; i++) {
+    var mk = state.marks[i];
+    if (mk.ref !== ref || !mk.marked) continue;
+    return (!mk.note && Date.now() - mk.ts <= MARK_NOTE_WINDOW) ? mk : null;
+  }
+  return null;
+}
+
+// A note about a mark you just made: it goes on that mark. The Sheet gets it as a new note event that
+// carries the mark's place and track, and "about" (the mark's event id) so the two can be tied together.
+function attachNote(mk, note) {
+  mk.note = note;
+  save('marks', state.marks);
+  fireMark({ ref: mk.ref, cat: mk.cat, title: mk.title, art: mk.art, pos: mk.pos, track: mk.track, note: note,
+             ts: Date.now(), about: 'n-' + mk.ts });
+  sendFlash('Note added to mark');
+}
+
+// marked: this is a bookmark press ("Mark this spot"), not words you said.
+function addMark(ref, watchTitle, text, raw, marked) {
   var p = raw ? { pos: '', note: clean(text, NOTE_MAX) } : parseSpoken(text);
+  if (!raw && !marked && !p.pos && p.note) {            // words only, soon after a mark: a note on that mark
+    var latest = recentMark(ref);
+    if (latest) { attachNote(latest, p.note); return; }
+  }
   if (raw && ref.indexOf('k:') === 0) { ref = 'k:thought'; watchTitle = 'Thought'; }
   if (raw && ref.indexOf('n:') === 0) {
     for (var pi = 0; pi < state.people.length; pi++) if (state.people[pi].ref === ref) { watchTitle = state.people[pi].name; break; }
@@ -1090,6 +1116,7 @@ function addMark(ref, watchTitle, text, raw) {
     note: p.note,
     ts: Date.now()
   };
+  if (marked) mark.marked = true;
   // Nothing said about where you are: ask the music plugin what is playing. A position from the
   // plugin fills "pos"; with no position the track is kept on its own. The mark is saved either way.
   if (!raw && !p.pos && mark.cat !== 'person' && mark.cat !== 'thought' && nowplaying.enabled()) {
@@ -1141,13 +1168,14 @@ var R_NOTE = 8;             // flag on a Reflect row: has a note
 var MONTH3 = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function isBareBookmark(mk) { return !mk.pos && !mk.note; }
+function isMark(mk) { return !!mk.marked || isBareBookmark(mk); }   // a spot you marked, even once a note is on it
 
 function reflectEntries() {
   var seen = {};                         // ref -> {note, bm}
   state.marks.forEach(function (mk) {
     var o = seen[mk.ref] || (seen[mk.ref] = { note: false, bm: false });
     if (mk.note) o.note = true;
-    if (mk.pos || !mk.note) o.bm = true;
+    if (mk.pos || !mk.note || mk.marked) o.bm = true;
   });
   var rows = state.log.slice().sort(function (a, b) { return b.ts - a.ts; }).slice(0, REFLECT_ROWS);
   return rows.map(function (r) {
@@ -1185,7 +1213,7 @@ function noteEntries(ref) {
         head = text.slice(0, cut);
         tail = text.slice(cut).replace(/^ /, '');
       }
-      return entry(head, tail, isBareBookmark(mk) ? R_BOOKMARK : 0);
+      return entry(head, tail, isMark(mk) ? R_BOOKMARK : 0);
     });
 }
 
@@ -1202,16 +1230,10 @@ function noteTargets() {
   return rows;
 }
 
-// One press on "Bookmark this": adds a bookmark with no words, or takes it off again.
-function toggleBookmark(ref, watchTitle) {
-  var had = state.marks.length;
-  state.marks = state.marks.filter(function (mk) { return !(mk.ref === ref && isBareBookmark(mk)); });
-  if (state.marks.length < had) {
-    save('marks', state.marks);
-    sendFlash('Bookmark removed');
-  } else {
-    addMark(ref, watchTitle, '');            // flashes "Bookmarked"
-  }
+// One press on "Mark this spot": always adds a new mark (with the track that is playing, if any), so one
+// podcast can hold as many marks as you like. Words said soon after go on the latest mark (see addMark).
+function addBookmark(ref, watchTitle) {
+  addMark(ref, watchTitle, '', false, true);            // flashes "Bookmarked"
 }
 
 // ---------------------------------------------------------------- favorites
@@ -1493,9 +1515,9 @@ function handleRequest(p) {
     case 12: sendList(token, noteEntries(arg)); break;       // Reflect: what you wrote about one
     case 14: sendList(token, peopleEntries()); break;        // People tile
     case 15: sendList(token, noteTargets()); break;          // Note tile
-    case 13: {                                               // Reflect: bookmark / unbookmark, "ref|title"
+    case 13: {                                               // Reflect: mark this spot, "ref|title"
       var mcut = arg.indexOf('|');
-      toggleBookmark(mcut > 0 ? arg.slice(0, mcut) : arg, mcut > 0 ? arg.slice(mcut + 1) : '');
+      addBookmark(mcut > 0 ? arg.slice(0, mcut) : arg, mcut > 0 ? arg.slice(mcut + 1) : '');
       break;
     }
     case 6: {

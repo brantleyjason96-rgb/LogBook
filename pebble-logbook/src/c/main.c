@@ -1014,7 +1014,7 @@ static void draw_message_row(GContext *ctx, const Layer *cell, const char *msg) 
 static void item_draw_row(GContext *ctx, const Layer *cell, int row, ListWin *w) {
   const GColor acc = kind_color(KIND_REFLECT);
   if (row == 0) {
-    draw_icon_row_c(ctx, cell, 2, acc, "Add a note", "Say what you thought");
+    draw_icon_row_c(ctx, cell, 2, acc, "Add a note", "On your last mark, or new");
     return;
   }
   if (row == 1) {
@@ -1022,8 +1022,8 @@ static void item_draw_row(GContext *ctx, const Layer *cell, int row, ListWin *w)
     for (int i = 0; i < w->count; i++) {
       if (w->e[i].flags & F_BOOKMARK) marked = true;
     }
-    draw_icon_row_c(ctx, cell, 11, acc, marked ? "Remove bookmark" : "Bookmark this",
-                    marked ? "Take the mark off" : "Mark it to revisit");
+    draw_icon_row_c(ctx, cell, 11, acc, marked ? "Mark again" : "Mark this spot",
+                    marked ? "Add another mark" : "Save your place");
     return;
   }
   if (row == 2) {
@@ -1526,7 +1526,7 @@ static void item_select(ListWin *w, int row) {
     copy_str(s_note_title, sizeof(s_note_title), w->title);
     s_dict_mode = 2;
     dictation_session_start(s_dict);
-  } else if (row == 1) {   // bookmark it, or take the bookmark off again
+  } else if (row == 1) {   // mark this spot (each press adds a new mark)
     char arg[ARG_LEN];
     snprintf(arg, sizeof(arg), "%s|%s", w->ref, w->title);
     send_request(REQ_MARK, 0, arg, 0);

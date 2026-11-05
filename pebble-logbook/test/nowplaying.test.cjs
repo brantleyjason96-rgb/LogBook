@@ -15,7 +15,7 @@ const track = (o) => ({ instances: [{ instanceId: '1', properties: Object.fromEn
 // an envelope, 'error', or 'silent' (never answers). index.js is plain script code that uses
 // require(), so it is run as a function body and the pieces the tests need are handed back.
 function boot(opts = {}) {
-  const sent = [], subscribed = [], store = {};
+  const sent = [], subscribed = [], store = Object.assign({}, opts.store);
   const Pebble = {
     addEventListener() {},
     sendAppMessage: (m, ok) => { sent.push(m); setImmediate(ok); },
@@ -45,7 +45,7 @@ function boot(opts = {}) {
   }
   if (opts.timeoutMs) np.CONFIG.timeoutMs = opts.timeoutMs;
   const body = fs.readFileSync(path.join(SRC, 'index.js'), 'utf8') +
-    '\nreturn { addMark: addMark, toggleBookmark: toggleBookmark, markEvent: markEvent, markEntries: markEntries, state: state };';
+    '\nreturn { addMark: addMark, addBookmark: addBookmark, markEvent: markEvent, markEntries: markEntries, noteEntries: noteEntries, state: state };';
   const api = new Function('require', 'Pebble', 'localStorage', 'console', 'setTimeout', 'clearTimeout', body)
     (req, Pebble, localStorage, { log() {} }, setTimeout, clearTimeout);
   return { api, np, Pebble, sent, subscribed, store };

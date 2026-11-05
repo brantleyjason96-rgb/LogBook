@@ -71,3 +71,10 @@ Only active on watches with a touchscreen and with touch on in the watch's setti
 - New file `src/pkjs/nowplaying.js` (settings at the top, empty `plugin` turns it off). `index.js`: `addMark` / `commitMark`, `markEvent` adds `track`.
 - Version is 1.16.1 so it installs above the 1.16.0 build.
 
+## 1.17.0 - many marks per item, notes on a mark
+
+- On an item's Reflect page the row is now **Mark this spot** (then **Mark again**). Every press adds a new mark, so a podcast can have as many as you like; each stores the time and the playing track. It no longer toggles, so marks are not removed from the watch (remove them on the web app).
+- **Add a note** (or holding Select and speaking) within 10 minutes of a mark puts the words on your latest mark. Say a time or page ("26 minutes in") and you get a new mark instead. Later or for another item, it is an ordinary note as before.
+- A note on a mark keeps the ribbon, and goes to the Sheet as a `note` event with the mark's place and track and `about` set to the mark's event id.
+- Watch change: three label strings in `item_draw_row` (`src/c/main.c`) and one comment. Everything else is phone side. `main.c` was not compiled here.
+
