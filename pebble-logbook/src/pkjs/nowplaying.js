@@ -2,25 +2,24 @@
 // What is playing on the phone, read through the Pebble music plugin, so a bookmark can say
 // which track you were on and how far in.
 //
-// STATUS: the plumbing is tested against a mocked plugin, but the plugin's own details could not
-// be checked (its docs were unreachable). Everything unverified is in CONFIG below. The feature
-// stays OFF until CONFIG.plugin is set, so shipping this file changes nothing by itself.
-// To switch it on: put the music plugin's UUID in CONFIG.plugin and check the other values
-// against the plugin's documentation (developer.repebble.com, "Plugins").
+// The plugin is the Core Pebble app's built-in Music plugin (MusicPlugin.kt in coredevices/mobileapp):
+// Android only, publishes title, artist, album and playing, and NOT playback position. So in practice a
+// bookmark gets the track, and a position only if a later plugin version adds one (see keys.position).
+// Tested against a mocked plugin built from that source, not yet on a real watch.
 //
 // Plain ES5, like the rest of the phone-side code.
 
 var CONFIG = {
-  plugin: '',                  // the music plugin's UUID. Empty = feature off.
-  category: 'media',           // UNVERIFIED: Pebble.subscribeToSource category
-  item: 'track',               // UNVERIFIED: Pebble.subscribeToSource item
-  keys: {                      // UNVERIFIED: property names in the plugin's data
+  plugin: '00000000-0000-0000-0001-000000000003',   // the built-in Music plugin. Empty = feature off.
+  category: 'music',
+  item: 'track',
+  keys: {                      // property names in the plugin's data
     title: 'title',
     artist: 'artist',
-    position: 'position',
+    position: '',              // the plugin does not publish one today; name it here if that changes
     playing: 'playing'
   },
-  positionUnit: 'seconds',     // UNVERIFIED: 'seconds' or 'ms'
+  positionUnit: 'seconds',     // 'seconds' or 'ms', used only if keys.position is set
   timeoutMs: 1500              // give up waiting after this long; the bookmark is saved without it
 };
 
@@ -29,10 +28,10 @@ function enabled() {
 }
 
 // One property of one instance: shortText -> string, numericValue / boolean -> value.
-function field(props, key) {
-  var p = props && props[key];
+function field(props, key, kind) {
+  var p = props && key && props[key];
   if (!p) return undefined;
-  var v = p.shortText || p.longText || p.numericValue || p.boolean;
+  var v = (kind && p[kind]) || p.shortText || p.longText || p.numericValue || p.boolean;
   if (!v) return undefined;
   return v.text !== undefined ? v.text : v.value;
 }
@@ -44,10 +43,11 @@ function parse(envelope) {
   if (!inst) return null;
   var props = inst.properties || {}, k = CONFIG.keys;
   var title = String(field(props, k.title) || '').replace(/\s+/g, ' ').trim();
-  if (!title) return null;
-  var playing = field(props, k.playing);
+  if (!title || title === '?') return null;               // the plugin sends "?" when it has no title
+  var playing = field(props, k.playing, 'boolean');       // also sent as the text "Playing"/"Paused"
   if (playing === false) return null;                     // paused or stopped: not "what I am listening to"
   var artist = String(field(props, k.artist) || '').replace(/\s+/g, ' ').trim();
+  if (artist === '?') artist = '';
   var pos = field(props, k.position);
   var position = null;
   if (typeof pos === 'number' && isFinite(pos) && pos >= 0) {
@@ -83,7 +83,7 @@ function read(cb) {
   try {
     sub = Pebble.subscribeToSource({
       category: CONFIG.category, item: CONFIG.item, plugin: CONFIG.plugin,
-      properties: [CONFIG.keys.title, CONFIG.keys.artist, CONFIG.keys.position, CONFIG.keys.playing],
+      properties: [CONFIG.keys.title, CONFIG.keys.artist, CONFIG.keys.position, CONFIG.keys.playing].filter(Boolean),
       onData: function (envelope) { var np = null; try { np = parse(envelope); } catch (e) {} finish(np); },
       onError: function () { finish(null); }
     });

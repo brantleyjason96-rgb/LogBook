@@ -7,33 +7,27 @@ project and rebuild. `appinfo.original.json` is the manifest from the v1.16.0 bu
 
 ## Now-playing bookmarks (`src/pkjs/nowplaying.js`)
 
-When a bookmark or note is saved with no position said out loud, the phone asks the Pebble music plugin
-what is playing:
+When a bookmark or note is saved with no position said out loud, the phone asks the Core Pebble app's
+built-in **Music** plugin (UUID `00000000-0000-0000-0001-000000000003`, source `music/track`) what is playing:
 
-- track **and** position known: `pos` is filled in ("12:34") and the track is saved with the bookmark;
-- track but **no position**: only the track is shown ("Bookmarked: Artist - Title");
+- **track known** (the normal case): the track is saved with the bookmark and shown ("Bookmarked: Artist - Title",
+  or just the track when that is too long for the watch), and in the Bookmarks list and on the web app;
 - nothing playing, paused, plugin error, or no answer within 1.5 s: saved exactly as before;
 - a position you say yourself ("20 minutes in") always wins and the plugin is not asked.
 
-People and loose thoughts never ask. The bookmarked item (the podcast, book, album you picked) is unchanged.
-The event sent to your Sheet gains a `track` field next to `pos`; the Apps Script must store it to keep it.
+The plugin publishes title, artist, album and playing/paused, **not playback position** (checked in the plugin's
+source, `MusicPlugin.kt`), so `pos` stays whatever you said. If a later plugin version adds position, set
+`CONFIG.keys.position` and the code will use it.
 
-### It is off until you finish setup
+People and loose thoughts never ask. The bookmarked item is unchanged. The event sent to your Sheet gains a
+`track` field next to `pos`; the Apps Script must store it to keep it.
 
-The plugin's own details could not be checked (its docs were unreachable), so they are guesses in
-`CONFIG` at the top of `nowplaying.js`, and the feature is off while `CONFIG.plugin` is empty:
-
-| Setting | Needs checking against the plugin docs |
-|---|---|
-| `plugin` | the music plugin's UUID (empty = off) |
-| `category`, `item` | what to subscribe to |
-| `keys` | property names for title, artist, position, playing |
-| `positionUnit` | `'seconds'` or `'ms'` |
-
-The Core Pebble app may also need its experimental plugins turned on, and the app's `appinfo.json` may need
-a permission for plugins (check the docs).
+### Needs
+- **Android** with the Core Pebble app (the plugin is Android only).
+- The Core app may need experimental plugins enabled (Debug menu) and may ask permission to read music.
+- Turn the feature off by emptying `CONFIG.plugin` in `nowplaying.js`.
 
 ## Tests
 
 `npm test` in this folder (Node 18+). They run the real `index.js` against a mocked plugin.
-They show the logic is right for the shape assumed above, not that the real plugin matches it.
+The plugin data in them is shaped like `MusicPlugin.kt` builds it. They have not been run on a real watch.

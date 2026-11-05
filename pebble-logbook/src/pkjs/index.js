@@ -1112,7 +1112,10 @@ function commitMark(mark, raw) {
   fireMark(mark);
   if (raw) { sendFlash('Note saved'); return; }
   if (mark.pos) sendFlash('Saved @' + mark.pos);
-  else if (mark.track) sendFlash(mark.note ? 'Note saved' : 'Bookmarked: ' + mark.track);
+  else if (mark.track && !mark.note) {
+    var msg = 'Bookmarked: ' + mark.track;
+    sendFlash(msg.length <= LABEL_MAX ? msg : mark.track);       // too long with the prefix: just the track
+  }
   else sendFlash(mark.note ? 'Note saved' : 'Bookmarked');
 }
 

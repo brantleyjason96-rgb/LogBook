@@ -39,7 +39,10 @@ function boot(opts = {}) {
     return modules[f].exports;
   };
   const np = req('./nowplaying');
-  if (opts.plugin !== null) np.CONFIG.plugin = opts.plugin || 'test-music-plugin';
+  if (opts.plugin !== 'default') {      // 'default' keeps the shipped settings; otherwise a stand-in plugin that also reports position
+    np.CONFIG.plugin = opts.plugin === null ? '' : (opts.plugin || 'test-music-plugin');
+    np.CONFIG.keys.position = 'position';
+  }
   if (opts.timeoutMs) np.CONFIG.timeoutMs = opts.timeoutMs;
   const body = fs.readFileSync(path.join(SRC, 'index.js'), 'utf8') +
     '\nreturn { addMark: addMark, toggleBookmark: toggleBookmark, markEvent: markEvent, markEntries: markEntries, state: state };';
@@ -150,4 +153,41 @@ test('paused music is ignored', async () => {
   t.api.addMark('p:123', 'My Podcast', '');
   await tick();
   assert.equal(t.api.state.marks[0].track, undefined);
+});
+
+// ---- the shipped settings, against an envelope shaped exactly like MusicPlugin.kt builds it
+const real = (o) => ({ instances: [{ instanceId: 'track', properties: {
+  title: { shortText: { text: o.title }, longText: { text: o.title } },
+  artist: { shortText: { text: o.artist }, longText: { text: o.artist } },
+  album: { shortText: { text: 'Album' }, longText: { text: 'Album' } },
+  playing: { boolean: { value: o.playing }, shortText: { text: o.playing ? 'Playing' : 'Paused' } } } }] });
+
+test('shipped settings subscribe to music/track on the built-in Music plugin', async () => {
+  const t = boot({ plugin: 'default', answer: real({ title: 'Heavy Rotation', artist: 'Some Band', playing: true }) });
+  t.api.addMark('a:222', 'Some Band - Heavy Rotation', '');
+  await tick();
+  const s = t.subscribed[0];
+  assert.deepEqual([s.plugin, s.category, s.item], ['00000000-0000-0000-0001-000000000003', 'music', 'track']);
+  assert.deepEqual(s.properties, ['title', 'artist', 'playing']);
+});
+
+test('real plugin: no position, so the track alone is kept and shown', async () => {
+  const t = boot({ plugin: 'default', answer: real({ title: 'Heavy Rotation', artist: 'Some Band', playing: true }) });
+  t.api.addMark('p:123', 'My Podcast', '');
+  await tick();
+  assert.deepEqual([t.api.state.marks[0].pos, t.api.state.marks[0].track], ['', 'Some Band - Heavy Rotation']);
+  assert.deepEqual(flashes(t).slice(-1), ['Some Band - Heavy Rotation'], 'too long with the prefix, so just the track');
+});
+
+test('real plugin: paused is read from the boolean, not the "Paused" text', async () => {
+  const t = boot({ plugin: 'default', answer: real({ title: 'x', artist: 'y', playing: false }) });
+  t.api.addMark('p:123', 'My Podcast', '');
+  await tick();
+  assert.equal(t.api.state.marks[0].track, undefined);
+});
+
+test('real plugin: "?" placeholders mean no title / no artist', () => {
+  const { np } = boot({ plugin: 'default' });
+  assert.equal(np.parse(real({ title: '?', artist: '?', playing: true })), null);
+  assert.equal(np.parse(real({ title: 'Song', artist: '?', playing: true })).artist, '');
 });
