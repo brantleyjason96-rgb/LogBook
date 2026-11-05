@@ -85,3 +85,8 @@ Only active on watches with a touchscreen and with touch on in the watch's setti
 - The plugin does **not** publish playback position, so the card cannot show where you are in the episode. The mark records the track and the time you made it.
 - Phone: `reflectRows`, `nowCard`, `nowItem` (waits up to 0.7 s for the plugin; no card if nothing answers). Watch: `now_playing_tap` and the card row in `list_draw_row` (`src/c/main.c`). Not compiled here.
 
+## 1.18.1 - marks on the phone settings page
+
+- Settings page (opened from the Pebble app) > **History** > the **Bookmarks and notes** chip (now first in the chip row) lists every mark and note, newest first: the item, a Mark / Bookmark / Note label, the playing track (a note symbol), the position or page if there is one, your note, and the date. **Delete** removes one (press Save to apply). The search box now searches this list too (item, note, track, position).
+- `config_html.js` was edited directly. It is generated from `tools/config.html` (not in this project), so make the same change there or a regenerate will undo it: the `renderMarks`, `renderList` (marks subtitle) and `renderChips` functions.
+
