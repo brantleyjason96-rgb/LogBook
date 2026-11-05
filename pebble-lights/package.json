@@ -1,7 +1,7 @@
 {
   "name": "pebble-lights",
   "author": "Jason",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "keywords": [
     "pebble-app"
   ],
@@ -27,33 +27,34 @@
     "watchapp": {
       "watchface": false
     },
-    "capabilities": [],
+    "capabilities": [
+      "configurable"
+    ],
     "usesPermissions": [],
     "messageKeys": [
       "kind",
+      "list",
       "idx",
       "name",
-      "room",
-      "state",
-      "bright",
-      "temp",
-      "set",
-      "mode",
-      "thermo",
-      "first",
-      "count",
-      "text",
       "sub",
+      "state",
+      "type",
+      "adj",
+      "count",
+      "room",
+      "text",
+      "value",
       "ok",
       "undo",
       "cmd",
-      "value",
       "say",
-      "rooms",
-      "lights"
+      "set",
+      "temp",
+      "mode"
     ],
     "resources": {
       "media": []
-    }
+    },
+    "configPage": "config.html"
   }
 }

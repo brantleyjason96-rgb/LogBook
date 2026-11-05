@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home Lights settings</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f3f5f2; --card: #ffffff; --fg: #15191b; --muted: #5a656a; --line: #d6dcd9; --chip: #e8ece9;
+    --accent: #d9480f; --accent-ink: #ffffff;
+    --on: #ffaa00; --scene: #00aaff; --heat: #ff5500; --off: #8a9499;
+    --bezel: #1b2023;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f1315; --card: #171c1f; --fg: #eceeee; --muted: #9aa5aa; --line: #2a3236; --chip: #232b2f;
+            --accent: #ff8a4c; --accent-ink: #1b0e07; --bezel: #0a0d0e; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         padding: 16px max(16px, env(safe-area-inset-right)) 48px max(16px, env(safe-area-inset-left)); }
+  main { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+  h1 { font-size: 1.5rem; margin: 0; letter-spacing: -0.01em; }
+  h2 { font-size: 1.05rem; margin: 0; }
+  p { margin: 0; }
+  .muted { color: var(--muted); font-size: 0.92rem; }
+  .status { font-size: 0.85rem; color: var(--muted); min-height: 1.3em; }
+  .status.err { color: #c8321d; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .gestures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .gestures div { background: var(--chip); border-radius: 10px; padding: 8px 10px; font-size: 0.85rem; }
+  .gestures b { display: block; font-size: 0.95rem; }
+
+  /* watch preview */
+  .home { display: grid; grid-template-columns: 224px 1fr; gap: 18px; align-items: start; }
+  .watch { background: var(--bezel); border-radius: 26px; padding: 12px; width: 224px; border: 1px solid var(--line); }
+  .screen { background: #fff; color: #000; width: 200px; min-height: 228px; border-radius: 6px; overflow: hidden; font-family: system-ui, sans-serif; }
+  .screen .bar { background: #fff; height: 16px; font-size: 11px; font-weight: 700; text-align: center; line-height: 16px; border-bottom: 1px solid #ddd; }
+  .screen .hdr { background: #555; color: #fff; font-size: 11px; font-weight: 700; padding: 1px 6px; height: 16px; line-height: 14px; }
+  .row { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 8px; font-size: 15px; font-weight: 700; }
+  .row.hl { background: #000; color: #fff; }
+  .row .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .r { font-size: 11px; font-weight: 500; color: #666; }
+  .row.hl .r { color: #bbb; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; flex: none; }
+  .dot.on { background: var(--on); } .dot.off { border: 2px solid #777; } .dot.scene { background: var(--scene); }
+  .dot.heat { background: var(--heat); } .dot.alloff { background: #ff5555; } .dot.none { visibility: hidden; }
+  .more { color: #666; font-size: 11px; padding: 4px 8px; }
+
+  /* editor */
+  .editor { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .fav { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; }
+  .fav .mv { display: flex; flex-direction: column; gap: 2px; }
+  .fav .kind { font-size: 0.75rem; color: var(--muted); }
+  button, select, input[type=text] { font: inherit; color: inherit; }
+  .icon { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--chip); cursor: pointer; font-size: 1rem; }
+  .icon.small { height: 30px; width: 48px; border-radius: 6px; font-size: 0.72rem; line-height: 1; padding: 0; }
+  .icon:disabled { opacity: 0.35; cursor: default; }
+  .icon:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+  input[type=text], select { width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); padding: 0 12px; }
+  .primary { min-height: 44px; border-radius: 10px; border: 0; background: var(--accent); color: var(--accent-ink); font-weight: 600; padding: 0 16px; cursor: pointer; }
+  .ghost { min-height: 44px; border-radius: 10px; border: 1px solid var(--line); background: transparent; padding: 0 16px; cursor: pointer; }
+  .empty { border: 1px dashed var(--line); border-radius: 10px; padding: 14px; text-align: center; }
+
+  /* names and visibility */
+  details { border: 1px solid var(--line); border-radius: 10px; }
+  summary { cursor: pointer; padding: 12px; font-weight: 600; min-height: 44px; display: flex; justify-content: space-between; gap: 8px; }
+  summary span { font-weight: 400; color: var(--muted); }
+  .items { padding: 0 12px 12px; display: flex; flex-direction: column; gap: 8px; }
+  .item { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+  .item label.name { display: flex; flex-direction: column; gap: 2px; font-size: 0.75rem; color: var(--muted); min-width: 0; }
+  .show { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; min-height: 44px; }
+  .show input { width: 22px; height: 22px; }
+  fieldset { border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+  legend { font-weight: 600; margin-bottom: 4px; padding: 0; }
+  .seg { display: flex; gap: 6px; flex-wrap: wrap; }
+  .seg label { flex: 1; min-width: 70px; }
+  .seg input { position: absolute; opacity: 0; }
+  .seg span { display: block; text-align: center; padding: 11px 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--chip); cursor: pointer; min-height: 44px; }
+  .seg input:checked + span { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  .seg input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 1px; }
+
+  @media (max-width: 560px) {
+    .home { grid-template-columns: 1fr; }
+    .watch { margin: 0 auto; }
+    .gestures { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Home Lights</h1>
+    <p class="status" id="status" role="status">Waiting for the app...</p>
+  </header>
+
+  <section aria-labelledby="h-gest">
+    <h2 id="h-gest">How the watch works</h2>
+    <div class="gestures">
+      <div><b>Tap SELECT</b>Does it: toggles a light or room, runs a scene</div>
+      <div><b>Hold UP</b>Fine-tune: brightness, or open a room</div>
+      <div><b>Hold SELECT</b>Talk to the watch, from any screen</div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-home">
+    <h2 id="h-home">Home screen</h2>
+    <p class="muted">These are the first things you see. A tap on the top row is one press, so put what you use most at the top. "All rooms" is always added at the end.</p>
+    <div class="home">
+      <div class="watch" aria-label="Preview of the watch home screen"><div class="screen" id="preview"></div></div>
+      <div class="editor">
+        <div id="favs"></div>
+        <label class="muted" for="add">Add to the home screen</label>
+        <select id="add"></select>
+        <p class="muted" id="suggest" hidden>This is the suggested layout. Change anything to make it yours.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-names">
+    <h2 id="h-names">Names and visibility</h2>
+    <p class="muted">Give anything a shorter name for the watch, or hide it from the room lists and from "All lights off". You can still name a hidden light when you talk to the watch.</p>
+    <div id="names"></div>
+  </section>
+
+  <section aria-labelledby="h-ctl">
+    <h2 id="h-ctl">Controls</h2>
+    <fieldset><legend>Brightness steps</legend><div class="seg" id="step"></div></fieldset>
+    <fieldset><legend>Thermostat steps</legend><div class="seg" id="tstep"></div></fieldset>
+  </section>
+
+  <button class="ghost" id="reset" type="button">Reset everything to the suggested layout</button>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  var bridge = typeof Pebble !== 'undefined' && Pebble && typeof Pebble.sendMessage === 'function';
+  var cat = { rooms: [], scenes: [], defaultFavs: [], shortcuts: [] };
+  var cfg = { favs: null, names: {}, hidden: {}, step: 10, tstep: 1 };
+  var byKey = {};
+  var statusEl = document.getElementById('status');
+  var saveTimer = null;
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, props, kids) {
+    var n = document.createElement(tag);
+    Object.keys(props || {}).forEach(function (k) {
+      if (k === 'text') n.textContent = props[k];
+      else if (k === 'class') n.className = props[k];
+      else if (k.slice(0, 2) === 'on') n.addEventListener(k.slice(2), props[k]);
+      else n.setAttribute(k, props[k]);
+    });
+    (kids || []).forEach(function (c) { if (c) n.appendChild(c); });
+    return n;
+  }
+  function setStatus(text, err) { statusEl.textContent = text; statusEl.className = 'status' + (err ? ' err' : ''); }
+
+  // ---- catalogue
+  function index() {
+    byKey = {};
+    (cat.shortcuts || []).forEach(function (s) { byKey[s.key] = { name: s.name, kind: 'Shortcut', right: s.right || '', dot: 'alloff' }; });
+    cat.rooms.forEach(function (r) {
+      byKey[r.key] = { name: r.name, kind: 'Room', right: r.right || '', dot: r.on ? 'on' : 'off' };
+      r.lights.forEach(function (l) { byKey[l.key] = { name: l.name, kind: 'Light in ' + r.name, right: l.right || '', dot: l.state === 1 ? 'on' : 'off' }; });
+      if (r.thermo) byKey[r.thermo.key] = { name: r.thermo.name, kind: 'Thermostat', right: r.thermo.right || '', dot: 'heat' };
+    });
+    cat.scenes.forEach(function (s) { byKey[s.key] = { name: s.name, kind: 'Scene', right: 'Run', dot: 'scene' }; });
+  }
+  function nameOf(key) { return (cfg.names[key] || (byKey[key] && byKey[key].name) || key).slice(0, 22); }
+  function favList() { return cfg.favs || cat.defaultFavs || []; }
+  function ownFavs() { if (!cfg.favs) cfg.favs = (cat.defaultFavs || []).slice(); return cfg.favs; }
+
+  // ---- saving
+  function changed() {
+    render();
+    setStatus('Saving...');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(save, 350);
+  }
+  function save() {
+    var payload = JSON.parse(JSON.stringify(cfg));
+    if (!bridge) { (window.__saved = window.__saved || []).push(payload); setStatus('Saved (demo, nothing is sent to a watch)'); return; }
+    Pebble.sendMessage('pkjs', { type: 'save', config: payload }).then(function () { setStatus('Saved. Your watch has the new layout.'); },
+      function () { setStatus("Couldn't save. Is the Home Lights app running?", true); });
+  }
+
+  // ---- home screen
+  function renderPreview() {
+    var box = $('preview');
+    box.textContent = '';
+    box.appendChild(el('div', { class: 'bar', text: '7:42' }));
+    box.appendChild(el('div', { class: 'hdr', text: 'Home' }));
+    var keys = favList().filter(function (k) { return byKey[k]; });
+    var rows = keys.map(function (k) { return { name: nameOf(k), right: byKey[k].right, dot: byKey[k].dot }; });
+    rows.push({ name: 'All rooms', right: '>', dot: 'none' });
+    rows.slice(0, 6).forEach(function (r, i) {
+      box.appendChild(el('div', { class: 'row' + (i === 0 ? ' hl' : '') }, [
+        el('span', { class: 'dot ' + r.dot }), el('span', { class: 't', text: r.name }), el('span', { class: 'r', text: r.right })]));
+    });
+    if (rows.length > 6) box.appendChild(el('div', { class: 'more', text: '+ ' + (rows.length - 6) + ' more below (scroll with DOWN)' }));
+  }
+  function move(i, d) {
+    var f = ownFavs(), j = i + d;
+    if (j < 0 || j >= f.length) return;
+    var t = f[i]; f[i] = f[j]; f[j] = t;
+    changed();
+  }
+  function remove(i) { ownFavs().splice(i, 1); changed(); }
+  function renderFavs() {
+    var box = $('favs');
+    box.textContent = '';
+    var f = favList();
+    if (!f.length) { box.appendChild(el('div', { class: 'empty', text: 'Nothing here yet. Add a room, light or scene below.' })); return; }
+    f.forEach(function (key, i) {
+      var info = byKey[key];
+      var input = el('input', { type: 'text', value: cfg.names[key] || '', placeholder: info ? info.name : key + ' (missing)', maxlength: '22', 'aria-label': 'Watch name for ' + (info ? info.name : key) });
+      input.addEventListener('change', function () { setName(key, input.value); });
+      var up = el('button', { class: 'icon small', type: 'button', 'aria-label': 'Move ' + nameOf(key) + ' up', text: 'Up', onclick: function () { move(i, -1); } });
+      var down = el('button', { class: 'icon small', type: 'button', 'aria-label': 'Move ' + nameOf(key) + ' down', text: 'Down', onclick: function () { move(i, 1); } });
+      if (i === 0) up.disabled = true;
+      if (i === f.length - 1) down.disabled = true;
+      box.appendChild(el('div', { class: 'fav' }, [
+        el('div', { class: 'mv' }, [up, down]),
+        el('div', {}, [el('div', { class: 'kind', text: info ? info.kind : 'No longer found' }), input]),
+        el('button', { class: 'icon', type: 'button', 'aria-label': 'Remove ' + nameOf(key), text: '✕', onclick: function () { remove(i); } })]));
+    });
+  }
+  function renderAdd() {
+    var sel = $('add');
+    sel.textContent = '';
+    var used = {};
+    favList().forEach(function (k) { used[k] = true; });
+    sel.appendChild(el('option', { value: '', text: 'Choose something to add...' }));
+    function group(label, items) {
+      items = items.filter(function (it) { return !used[it.key]; });
+      if (!items.length) return;
+      var g = el('optgroup', { label: label });
+      items.forEach(function (it) { g.appendChild(el('option', { value: it.key, text: it.text })); });
+      sel.appendChild(g);
+    }
+    group('Shortcuts', (cat.shortcuts || []).map(function (s) { return { key: s.key, text: s.name }; }));
+    group('Rooms (tap toggles every light in the room)', cat.rooms.map(function (r) { return { key: r.key, text: r.name }; }));
+    var lights = [], thermos = [];
+    cat.rooms.forEach(function (r) {
+      r.lights.forEach(function (l) { lights.push({ key: l.key, text: l.name + ' (' + r.name + ')' }); });
+      if (r.thermo) thermos.push({ key: r.thermo.key, text: r.thermo.name + ' (' + r.name + ')' });
+    });
+    group('Lights', lights);
+    group('Thermostats', thermos);
+    group('Scenes', cat.scenes.map(function (s) { return { key: s.key, text: s.name }; }));
+    sel.disabled = sel.options.length < 2;
+  }
+
+  // ---- names and visibility
+  function setName(key, value) {
+    value = value.trim().slice(0, 22);
+    if (value) cfg.names[key] = value; else delete cfg.names[key];
+    changed();
+  }
+  function nameRow(key, label, canHide) {
+    var input = el('input', { type: 'text', value: cfg.names[key] || '', placeholder: 'Watch name (optional)', maxlength: '22', id: 'n-' + key });
+    input.addEventListener('change', function () { setName(key, input.value); });
+    var kids = [el('label', { class: 'name', for: 'n-' + key }, [el('span', { text: label }), input])];
+    if (canHide) {
+      var box = el('input', { type: 'checkbox', id: 'h-' + key });
+      box.checked = !cfg.hidden[key];
+      box.addEventListener('change', function () { if (box.checked) delete cfg.hidden[key]; else cfg.hidden[key] = true; changed(); });
+      kids.push(el('label', { class: 'show', for: 'h-' + key }, [box, el('span', { text: 'Show' })]));
+    } else kids.push(el('span'));
+    return el('div', { class: 'item' }, kids);
+  }
+  function renderNames() {
+    var box = $('names');
+    var open = {};
+    Array.prototype.forEach.call(box.querySelectorAll('details'), function (d) { open[d.getAttribute('data-k')] = d.open; });
+    box.textContent = '';
+    box.style.display = 'flex'; box.style.flexDirection = 'column'; box.style.gap = '8px';
+    cat.rooms.forEach(function (r) {
+      var items = [nameRow(r.key, r.name + ' (room)', true)];
+      r.lights.forEach(function (l) { items.push(nameRow(l.key, l.name + (l.dim ? '' : ' (no dimming)'), true)); });
+      if (r.thermo) items.push(nameRow(r.thermo.key, r.thermo.name + ' (thermostat)', false));
+      var d = el('details', { 'data-k': r.key }, [
+        el('summary', {}, [el('div', { text: r.name }), el('span', { text: r.lights.length + (r.lights.length === 1 ? ' light' : ' lights') })]),
+        el('div', { class: 'items' }, items)]);
+      if (open[r.key]) d.open = true;
+      box.appendChild(d);
+    });
+    if (cat.scenes.length) {
+      var d2 = el('details', { 'data-k': 'scenes' }, [
+        el('summary', {}, [el('div', { text: 'Scenes' }), el('span', { text: cat.scenes.length + ' from Google Home' })]),
+        el('div', { class: 'items' }, cat.scenes.map(function (s) { return nameRow(s.key, s.name, true); }))]);
+      if (open.scenes) d2.open = true;
+      box.appendChild(d2);
+    }
+    if (!cat.rooms.length && !cat.scenes.length) box.appendChild(el('div', { class: 'empty', text: 'No lights found yet. Open the Home Lights app on the watch, and check the Google Home plugin is signed in.' }));
+  }
+
+  // ---- controls
+  function seg(id, values, current, format, apply) {
+    var box = $(id);
+    box.textContent = '';
+    values.forEach(function (v) {
+      var input = el('input', { type: 'radio', name: id, value: String(v) });
+      input.checked = v === current;
+      input.addEventListener('change', function () { apply(v); changed(); });
+      box.appendChild(el('label', {}, [input, el('span', { text: format(v) })]));
+    });
+  }
+
+  function render() {
+    index();
+    renderPreview();
+    renderFavs();
+    renderAdd();
+    renderNames();
+    seg('step', [5, 10, 20], cfg.step, function (v) { return v + '%'; }, function (v) { cfg.step = v; });
+    seg('tstep', [1, 2], cfg.tstep, function (v) { return v + '°'; }, function (v) { cfg.tstep = v; });
+    $('suggest').hidden = !!cfg.favs;
+  }
+
+  $('add').addEventListener('change', function () {
+    var key = $('add').value;
+    if (!key) return;
+    ownFavs();
+    if (cfg.favs.length < 20 && cfg.favs.indexOf(key) < 0) cfg.favs.push(key);
+    changed();
+  });
+  $('reset').addEventListener('click', function () {
+    cfg = { favs: null, names: {}, hidden: {}, step: 10, tstep: 1 };
+    render();
+    if (!bridge) { setStatus('Reset (demo)'); (window.__saved = window.__saved || []).push(null); return; }
+    Pebble.sendMessage('pkjs', { type: 'reset' }).then(function (r) {
+      if (r && r.catalogue) cat = r.catalogue;
+      render();
+      setStatus('Reset. Your watch has the suggested layout.');
+    }, function () { setStatus("Couldn't reset. Is the Home Lights app running?", true); });
+  });
+
+  function normalize(c) {
+    c = c || {};
+    return { favs: Array.isArray(c.favs) ? c.favs : null, names: c.names || {}, hidden: c.hidden || {}, step: c.step || 10, tstep: c.tstep || 1 };
+  }
+  function load() {
+    Pebble.sendMessage('pkjs', { type: 'get' }).then(function (r) {
+      cat = r.catalogue || cat;
+      cfg = normalize(r.config);
+      render();
+      setStatus(cat.rooms.length ? 'Connected. Changes reach your watch as you make them.' : 'Connected, but no lights found yet.');
+    }, function () { setStatus("Couldn't reach the Home Lights app.", true); });
+  }
+
+  if (bridge) {
+    Pebble.addEventListener('ready', function (e) { if (e.target === 'pkjs') load(); });
+    Pebble.addEventListener('message', function (e) {
+      if (e.data && e.data.type === 'catalogue') { cat = e.data.catalogue; if (e.data.config) cfg = normalize(e.data.config); render(); }
+    });
+    render();
+  } else {
+    // Opened in a plain browser: show example data so the page can be previewed.
+    cat = window.__demo || {
+      shortcuts: [{ key: 'alloff', name: 'All lights off', right: '6 on' }],
+      rooms: [
+        { key: 'r:Bedroom', name: 'Bedroom', right: '0/2', on: 0, lights: [{ key: 'l:5', name: 'Lamp', dim: true, right: 'Off', state: 0 }, { key: 'l:6', name: 'Ceiling', dim: true, right: 'Off', state: 0 }], thermo: null },
+        { key: 'r:Kitchen', name: 'Kitchen', right: '1/1', on: 1, lights: [{ key: 'l:7', name: 'Under cabinet', dim: false, right: 'On', state: 1 }], thermo: null },
+        { key: 'r:Living room', name: 'Living room', right: '3/4 68°', on: 1, lights: [{ key: 'l:1', name: 'Floor lamp', dim: true, right: '80%', state: 1 }, { key: 'l:2', name: 'Ceiling', dim: true, right: '100%', state: 1 }, { key: 'l:3', name: 'Shelf lights', dim: true, right: 'Off', state: 0 }, { key: 'l:4', name: 'TV backlight', dim: true, right: '30%', state: 1 }], thermo: { key: 't:11', name: 'Thermostat', right: 'Heat 70°' } },
+        { key: 'r:Office', name: 'Office', right: '2/2', on: 1, lights: [{ key: 'l:8', name: 'Lamp', dim: true, right: '60%', state: 1 }, { key: 'l:9', name: 'Desk light', dim: true, right: '100%', state: 1 }], thermo: null }],
+      scenes: [{ key: 's:a1', name: 'Goodnight' }, { key: 's:a2', name: 'Movie night' }],
+      defaultFavs: ['alloff', 'r:Bedroom', 'r:Kitchen', 'r:Living room', 'r:Office', 't:11', 's:a1', 's:a2'],
+    };
+    render();
+    setStatus('Demo mode: example lights. Open this page from the Pebble app to use your own.');
+  }
+})();
+</script>
+</body>
+</html>
