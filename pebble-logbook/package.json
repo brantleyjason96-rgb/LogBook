@@ -1,0 +1,6 @@
+{
+  "name": "pebble-logbook-phone",
+  "private": true,
+  "description": "Tests for the Logbook watch app's phone-side code",
+  "scripts": { "test": "node --test test/*.test.cjs" }
+}
