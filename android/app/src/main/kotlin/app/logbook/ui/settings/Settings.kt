@@ -52,7 +52,9 @@ fun ConnectScreen(vm: LogbookViewModel, onConnected: () -> Unit) {
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Text("Connect", style = LbTextStyles.displayScreen, color = LbTheme.colors.ink)
+        // The wordmark is the one use of displayHero in the tokens, and the
+        // Connect screen is where the mockup puts it (screens/13-connect_*).
+        Text("Logbook", style = LbTextStyles.displayHero, color = LbTheme.colors.ink)
         Text(
             "Paste the setup link from the Logbook web app's Settings (#u=…&k=…). The key is stored encrypted and never leaves this phone except to your Sheet.",
             style = LbTextStyles.body,
@@ -110,7 +112,13 @@ fun ConnectScreen(vm: LogbookViewModel, onConnected: () -> Unit) {
 
 /** M11 Settings: sync state, connection, device info, clear and disconnect. */
 @Composable
-fun SettingsScreen(vm: LogbookViewModel, onBack: () -> Unit, onConnect: () -> Unit, onReminders: () -> Unit = {}) {
+fun SettingsScreen(
+    vm: LogbookViewModel,
+    onBack: () -> Unit,
+    onConnect: () -> Unit,
+    onReminders: () -> Unit = {},
+    onGallery: (() -> Unit)? = null,
+) {
     val connection by vm.connection.collectAsState()
     val sync by vm.syncState.collectAsState()
     val busy by vm.busy.collectAsState()
@@ -199,6 +207,13 @@ fun SettingsScreen(vm: LogbookViewModel, onBack: () -> Unit, onConnect: () -> Un
                     )
                 }
             }
+        }
+
+        // V2 of docs/VISUALS_PLAN.md: the gallery is a debug tool, so it is
+        // compiled into debug builds only and never shown to a release user.
+        if (BuildConfig.DEBUG && onGallery != null) {
+            LbSectionHeader("Debug")
+            LbButton("Component gallery", onGallery, primary = false)
         }
 
         LbSectionHeader("Careful")

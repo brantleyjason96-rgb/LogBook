@@ -261,10 +261,16 @@ fun LogbookShell(
                         onBack = { nav.popBackStack() },
                         onConnect = { nav.navigate("connect") },
                         onReminders = { nav.navigate("settings/reminders") },
+                        // V2 of docs/VISUALS_PLAN.md: debug builds only; the row
+                        // is hidden when BuildConfig.DEBUG is false.
+                        onGallery = { nav.navigate("gallery") },
                     )
                 }
                 composable("settings/reminders") {
                     app.logbook.ui.settings.RemindersScreen(vm = vm, onBack = { nav.popBackStack() })
+                }
+                composable("gallery") {
+                    app.logbook.ui.components.ComponentGalleryScreen(onBack = { nav.popBackStack() })
                 }
             }
         }
