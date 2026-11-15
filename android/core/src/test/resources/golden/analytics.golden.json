@@ -1,0 +1,810 @@
+{
+ "nowMs": 1794759120000,
+ "cadence": {
+  "n:maria-alvarez": {
+   "meets": 31,
+   "med": 12,
+   "since": 0,
+   "st": "ok",
+   "label": "On track",
+   "ratio": 0
+  },
+  "n:ms-gamilah": {
+   "meets": 11,
+   "med": 7,
+   "since": 5,
+   "st": "ok",
+   "label": "On track",
+   "ratio": 0.7142857142857143
+  },
+  "n:priya-nair": {
+   "meets": 50,
+   "med": 7,
+   "since": 1,
+   "st": "ok",
+   "label": "On track",
+   "ratio": 0.14285714285714285
+  },
+  "n:renee-zelder": {
+   "meets": 31,
+   "med": 9,
+   "since": 2,
+   "st": "ok",
+   "label": "On track",
+   "ratio": 0.2222222222222222
+  },
+  "n:nora-new": {
+   "meets": 1,
+   "med": 0,
+   "since": 3,
+   "st": "new",
+   "label": "New",
+   "ratio": 0.1
+  },
+  "n:moca": {
+   "meets": 19,
+   "med": 11,
+   "since": 7,
+   "st": "ok",
+   "label": "On track",
+   "ratio": 0.6363636363636364
+  },
+  "n:prof-wu": {
+   "meets": 5,
+   "med": 21,
+   "since": 8,
+   "st": "ok",
+   "label": "On track",
+   "ratio": 0.38095238095238093
+  },
+  "n:zoe-chan": {
+   "meets": 5,
+   "med": 25,
+   "since": 9,
+   "st": "ok",
+   "label": "On track",
+   "ratio": 0.36
+  },
+  "n:dev-patel": {
+   "meets": 22,
+   "med": 14,
+   "since": 10,
+   "st": "ok",
+   "label": "On track",
+   "ratio": 0.7142857142857143
+  },
+  "n:coach-reyes": {
+   "meets": 4,
+   "med": 22,
+   "since": 11,
+   "st": "ok",
+   "label": "On track",
+   "ratio": 0.5
+  },
+  "n:amara-okafor-diallo": {
+   "meets": 4,
+   "med": 28,
+   "since": 12,
+   "st": "ok",
+   "label": "On track",
+   "ratio": 0.42857142857142855
+  },
+  "n:o-brien": {
+   "meets": 16,
+   "med": 9,
+   "since": 14,
+   "st": "ok",
+   "label": "On track",
+   "ratio": 1.5555555555555556
+  },
+  "n:miriam-three": {
+   "meets": 3,
+   "med": 35,
+   "since": 20,
+   "st": "ok",
+   "label": "On track",
+   "ratio": 0.5714285714285714
+  },
+  "n:princess-flowers-longname-smit": {
+   "meets": 2,
+   "med": 22,
+   "since": 25,
+   "st": "ok",
+   "label": "On track",
+   "ratio": 1.1363636363636365
+  },
+  "n:dr-okafor": {
+   "meets": 17,
+   "med": 21,
+   "since": 34,
+   "st": "slipping",
+   "label": "Slipping",
+   "ratio": 1.619047619047619
+  },
+  "n:anna-lise-bergstrom": {
+   "meets": 2,
+   "med": 260,
+   "since": 40,
+   "st": "ok",
+   "label": "On track",
+   "ratio": 0.15384615384615385
+  },
+  "n:an-emoji-person": {
+   "meets": 1,
+   "med": 0,
+   "since": 46,
+   "st": "quiet",
+   "label": "Quiet",
+   "ratio": 1.5333333333333334
+  },
+  "n:marco-retired": {
+   "meets": 12,
+   "med": 13,
+   "since": 50,
+   "st": "quiet",
+   "label": "Quiet",
+   "ratio": 3.8461538461538463
+  },
+  "n:hana-suzuki": {
+   "meets": 12,
+   "med": 17,
+   "since": 60,
+   "st": "quiet",
+   "label": "Quiet",
+   "ratio": 3.5294117647058822
+  },
+  "n:elias": {
+   "meets": 0,
+   "med": 0,
+   "since": 70,
+   "st": "noted",
+   "label": "Noted",
+   "ratio": 2.3333333333333335
+  },
+  "n:jo-quiet": {
+   "meets": 7,
+   "med": 25,
+   "since": 80,
+   "st": "quiet",
+   "label": "Quiet",
+   "ratio": 3.2
+  }
+ },
+ "needsAttention": [
+  "n:marco-retired",
+  "n:hana-suzuki",
+  "n:jo-quiet",
+  "n:dr-okafor"
+ ],
+ "topics": {
+  "n:maria-alvarez": [
+   "coach",
+   "instructional",
+   "walked",
+   "interview"
+  ],
+  "n:ms-gamilah": [
+   "frames",
+   "sentence",
+   "wida",
+   "plate",
+   "report",
+   "rubric",
+   "tectonics",
+   "unit"
+  ],
+  "n:priya-nair": [
+   "bring",
+   "monday",
+   "sample",
+   "soil"
+  ],
+  "n:renee-zelder": [
+   "order",
+   "plate",
+   "quiz",
+   "unit",
+   "wants"
+  ],
+  "n:nora-new": [
+   "around",
+   "introduced",
+   "science",
+   "transfer",
+   "wing"
+  ],
+  "n:moca": [
+   "call",
+   "drills",
+   "practice",
+   "speaking"
+  ],
+  "n:prof-wu": [
+   "citations",
+   "corrected",
+   "email",
+   "hours",
+   "methods",
+   "office",
+   "thesis"
+  ],
+  "n:zoe-chan": [
+   "check",
+   "maps",
+   "friday"
+  ],
+  "n:dev-patel": [
+   "apartments",
+   "december",
+   "moving"
+  ],
+  "n:coach-reyes": [
+   "schedule",
+   "spring",
+   "track"
+  ],
+  "n:amara-okafor-diallo": [
+   "coffee",
+   "maps",
+   "rubric",
+   "tired",
+   "walk"
+  ],
+  "n:o-brien": [
+   "fiddle",
+   "nights"
+  ],
+  "n:miriam-three": [
+   "meeting",
+   "parking",
+   "spot",
+   "third"
+  ],
+  "n:princess-flowers-longname-smit": [],
+  "n:dr-okafor": [
+   "acquisition",
+   "committee",
+   "dates",
+   "language",
+   "outline",
+   "review",
+   "second",
+   "section"
+  ],
+  "n:anna-lise-bergstrom": [
+   "fiddle",
+   "nights",
+   "spring"
+  ],
+  "n:an-emoji-person": [],
+  "n:marco-retired": [],
+  "n:hana-suzuki": [],
+  "n:elias": [
+   "desk",
+   "front",
+   "laminator",
+   "runs"
+  ],
+  "n:jo-quiet": []
+ },
+ "followUpsWeb": [
+  {
+   "key": "e22:2",
+   "text": "Ask how the interview goes",
+   "ref": "n:maria-alvarez",
+   "who": "Maria Alvarez",
+   "when": 1794757800000
+  },
+  {
+   "key": "e21:0",
+   "text": "Ask Ms",
+   "ref": "n:ms-gamilah",
+   "who": "Ms. Gamilah",
+   "when": 1794745800000
+  },
+  {
+   "key": "e19:1",
+   "text": "Try the cardamom latte again",
+   "ref": "x:hazels-coffee",
+   "who": "Hazel's Coffee",
+   "when": 1794735600000
+  },
+  {
+   "key": "e12:1",
+   "text": "Ask Zelder about the plate unit quiz",
+   "ref": "n:renee-zelder",
+   "who": "Renée Zelder",
+   "when": 1794557100000
+  },
+  {
+   "key": "e10:0",
+   "text": "Book the bus for the field trip",
+   "ref": "",
+   "who": "",
+   "when": 1794495600000
+  },
+  {
+   "key": "e6:0",
+   "text": "Send Dr",
+   "ref": "",
+   "who": "",
+   "when": 1794402000000
+  },
+  {
+   "key": "e4:1",
+   "text": "Bring the kit Monday",
+   "ref": "n:priya-nair",
+   "who": "Priya Nair",
+   "when": 1794385800000
+  },
+  {
+   "key": "e278:0",
+   "text": "Email Prof",
+   "ref": "n:prof-wu",
+   "who": "Prof. Wu",
+   "when": 1794043800000
+  },
+  {
+   "key": "e34:1",
+   "text": "Check the kit in the morning",
+   "ref": "n:zoe-chan",
+   "who": "Zoë Chan",
+   "when": 1793975400000
+  },
+  {
+   "key": "e235:1",
+   "text": "Call Moça to practice",
+   "ref": "n:moca",
+   "who": "Moça",
+   "when": 1793893500000
+  },
+  {
+   "key": "e253:0",
+   "text": "Ask O'Brien about the fiddle nights",
+   "ref": "n:o-brien",
+   "who": "O'Brien",
+   "when": 1793530800000
+  },
+  {
+   "key": "e295:2",
+   "text": "Call Priya about the garden rows",
+   "ref": "",
+   "who": "",
+   "when": 1793288400000
+  },
+  {
+   "key": "e303:1",
+   "text": "Try the seeded version next",
+   "ref": "r:cardamom-buns",
+   "who": "Cardamom buns",
+   "when": 1793208600000
+  },
+  {
+   "key": "e296:0",
+   "text": "Check the maps kit back in",
+   "ref": "n:zoe-chan",
+   "who": "Zoë Chan",
+   "when": 1792834200000
+  },
+  {
+   "key": "e296:1",
+   "text": "Check the kit Friday",
+   "ref": "n:zoe-chan",
+   "who": "Zoë Chan",
+   "when": 1792834200000
+  },
+  {
+   "key": "e297:0",
+   "text": "Check the maps kit shelf labels",
+   "ref": "n:zoe-chan",
+   "who": "Zoë Chan",
+   "when": 1792494600000
+  },
+  {
+   "key": "e292:0",
+   "text": "Reserve the projector",
+   "ref": "",
+   "who": "",
+   "when": 1789639500000
+  },
+  {
+   "key": "e293:0",
+   "text": "File the field trip forms",
+   "ref": "",
+   "who": "",
+   "when": 1789575120000
+  }
+ ],
+ "followUpsFixed": [
+  {
+   "key": "e22:2",
+   "text": "Ask how the interview goes",
+   "ref": "n:maria-alvarez",
+   "when": 1794757800000,
+   "span": [
+    71,
+    96
+   ]
+  },
+  {
+   "key": "e21:0",
+   "text": "Ask Ms. Gamilah about WIDA sentence frames for the plate tectonics unit",
+   "ref": "n:ms-gamilah",
+   "when": 1794745800000,
+   "span": [
+    0,
+    70
+   ]
+  },
+  {
+   "key": "e19:1",
+   "text": "Try the cardamom latte again",
+   "ref": "x:hazels-coffee",
+   "when": 1794735600000,
+   "span": [
+    20,
+    47
+   ]
+  },
+  {
+   "key": "e12:1",
+   "text": "Ask Zelder about the plate unit quiz",
+   "ref": "n:renee-zelder",
+   "when": 1794557100000,
+   "span": [
+    32,
+    67
+   ]
+  },
+  {
+   "key": "e10:0",
+   "text": "Book the bus for the field trip",
+   "ref": "",
+   "when": 1794495600000,
+   "span": [
+    12,
+    42
+   ]
+  },
+  {
+   "key": "e6:0",
+   "text": "Send Dr. Okafor the lit review outline",
+   "ref": "",
+   "when": 1794402000000,
+   "span": [
+    8,
+    45
+   ]
+  },
+  {
+   "key": "e4:1",
+   "text": "Bring the kit Monday",
+   "ref": "n:priya-nair",
+   "when": 1794385800000,
+   "span": [
+    41,
+    60
+   ]
+  },
+  {
+   "key": "e278:0",
+   "text": "Email Prof",
+   "ref": "n:prof-wu",
+   "when": 1794043800000,
+   "span": [
+    7,
+    16
+   ]
+  },
+  {
+   "key": "e34:1",
+   "text": "Check the kit in the morning",
+   "ref": "n:zoe-chan",
+   "when": 1793975400000,
+   "span": [
+    23,
+    50
+   ]
+  },
+  {
+   "key": "e235:1",
+   "text": "Call Moça to practice",
+   "ref": "n:moca",
+   "when": 1793893500000,
+   "span": [
+    26,
+    46
+   ]
+  },
+  {
+   "key": "e253:0",
+   "text": "Ask O'Brien about the fiddle nights",
+   "ref": "n:o-brien",
+   "when": 1793530800000,
+   "span": [
+    0,
+    34
+   ]
+  },
+  {
+   "key": "e303:1",
+   "text": "Try the seeded version next",
+   "ref": "r:cardamom-buns",
+   "when": 1793208600000,
+   "span": [
+    24,
+    50
+   ]
+  },
+  {
+   "key": "e296:0",
+   "text": "Check the maps kit back in",
+   "ref": "n:zoe-chan",
+   "when": 1792834200000,
+   "span": [
+    8,
+    33
+   ]
+  },
+  {
+   "key": "e296:1",
+   "text": "Check the kit Friday",
+   "ref": "n:zoe-chan",
+   "when": 1792834200000,
+   "span": [
+    36,
+    55
+   ]
+  },
+  {
+   "key": "e297:0",
+   "text": "Check the maps kit shelf labels",
+   "ref": "n:zoe-chan",
+   "when": 1792494600000,
+   "span": [
+    0,
+    30
+   ]
+  },
+  {
+   "key": "e292:0",
+   "text": "Reserve the projector",
+   "ref": "",
+   "when": 1789639500000,
+   "span": [
+    12,
+    32
+   ]
+  },
+  {
+   "key": "e293:0",
+   "text": "File the field trip forms",
+   "ref": "",
+   "when": 1789575120000,
+   "span": [
+    8,
+    32
+   ]
+  }
+ ],
+ "themes": [
+  {
+   "word": "rubric",
+   "cur": 4,
+   "prev": 4,
+   "trend": "Rising",
+   "tone": "rose",
+   "who": [
+    "Maria Alvarez",
+    "Ms. Gamilah"
+   ]
+  },
+  {
+   "word": "plate",
+   "cur": 3,
+   "prev": 0,
+   "trend": "New",
+   "tone": "green",
+   "who": [
+    "Ms. Gamilah",
+    "Renée Zelder"
+   ]
+  },
+  {
+   "word": "unit",
+   "cur": 3,
+   "prev": 1,
+   "trend": "Rising",
+   "tone": "rose",
+   "who": [
+    "Ms. Gamilah",
+    "Renée Zelder"
+   ]
+  },
+  {
+   "word": "cardamom",
+   "cur": 2,
+   "prev": 0,
+   "trend": "New",
+   "tone": "green",
+   "who": []
+  },
+  {
+   "word": "early",
+   "cur": 2,
+   "prev": 0,
+   "trend": "New",
+   "tone": "green",
+   "who": []
+  },
+  {
+   "word": "field",
+   "cur": 2,
+   "prev": 0,
+   "trend": "New",
+   "tone": "green",
+   "who": []
+  }
+ ],
+ "resumeList": [
+  {
+   "ref": "b:braiding-sweetgrass",
+   "title": "Braiding Sweetgrass",
+   "cat": "book",
+   "where": "Stopped at ch. 7",
+   "note": "Stopped at chapter 7. Braiding essays with the rubric work.",
+   "when": 1794677400000
+  },
+  {
+   "ref": "p:field-notes-hour",
+   "title": "The Field Notes Hour",
+   "cat": "podcast",
+   "where": "Stopped at ep 41",
+   "note": "Episode on maps and field work.",
+   "when": 1794592800000
+  },
+  {
+   "ref": "t:severance",
+   "title": "Severance",
+   "cat": "tv",
+   "where": "Stopped at s2e4",
+   "note": "",
+   "when": 1794429000000
+  },
+  {
+   "ref": "t:slow-horses",
+   "title": "Slow Horses",
+   "cat": "tv",
+   "where": "Stopped at s1e2",
+   "note": "",
+   "when": 1793965500000
+  }
+ ],
+ "streak": 6,
+ "aWhileBack": [
+  {
+   "label": "A year ago",
+   "id": "e302"
+  },
+  {
+   "label": "About three months ago",
+   "id": "e276"
+  }
+ ],
+ "weekStats": {
+  "cur": {
+   "n": 26,
+   "days": 6,
+   "people": [
+    "n:maria-alvarez",
+    "n:ms-gamilah",
+    "n:nora-new",
+    "n:priya-nair",
+    "n:renee-zelder"
+   ],
+   "rated": 8,
+   "avg": 4.5
+  },
+  "prev": {
+   "n": 28,
+   "days": 7,
+   "people": [
+    "n:amara-okafor-diallo",
+    "n:coach-reyes",
+    "n:dev-patel",
+    "n:moca",
+    "n:ms-gamilah",
+    "n:priya-nair",
+    "n:prof-wu",
+    "n:zoe-chan"
+   ],
+   "rated": 5,
+   "avg": 4.2
+  }
+ },
+ "notices": [
+  {
+   "tone": "OK",
+   "text": "You have rated Past Lives 5 times, more than anything else."
+  },
+  {
+   "tone": "PERSON",
+   "text": "You have met Priya Nair 50 times, more than anyone else."
+  },
+  {
+   "tone": "ACC",
+   "text": "Sundays are your busiest day for logging."
+  }
+ ],
+ "taste": [
+  {
+   "k": "movie",
+   "n": 2,
+   "avg": 4.5
+  },
+  {
+   "k": "tv",
+   "n": 1,
+   "avg": 4.5
+  },
+  {
+   "k": "other",
+   "n": 1,
+   "avg": 4.5
+  },
+  {
+   "k": "book",
+   "n": 1,
+   "avg": 4
+  },
+  {
+   "k": "song",
+   "n": 1,
+   "avg": 4
+  }
+ ],
+ "narrative": "You logged 26 entries across 6 days. You met 5 people, 2 of them more than once. You rated 8 things, averaging 4.5 stars. Your notes kept coming back to “rubric” and “plate”. That is down from 28 the week before.",
+ "suggestions": [
+  {
+   "score": 22,
+   "title": "Met Priya?",
+   "why": "You often see Priya on Sundays around 4 PM",
+   "act": "Log it"
+  },
+  {
+   "score": 5,
+   "title": "Back to Braiding Sweetgrass?",
+   "why": "Stopped at ch. 7",
+   "act": "Add note"
+  },
+  {
+   "score": 3,
+   "title": "Check in with Marco",
+   "why": "It has been 50 days, longer than your usual every 2 weeks",
+   "act": "Open"
+  }
+ ],
+ "checkInDrafts": {
+  "n:maria-alvarez": "Hi Maria, I was thinking of you. Last time we talked about walked the lake loop. she is applying for the…. How is that going? I still want to ask how the interview goes.",
+  "n:ms-gamilah": "Hi Ms. Gamilah, I was thinking of you. Last time we talked about ask ms. gamilah about wida sentence frames for the plate…. How is that going? I still want to ask Ms.",
+  "n:priya-nair": "Hi Priya, I was thinking of you. Last time we talked about easy five miles. garden club starts in spring. How is that going? I still want to bring the kit Monday.",
+  "n:renee-zelder": "Hi Renée, I was thinking of you. Last time we talked about wants to mix up the unit order. ask zelder about the plate…. How is that going? I still want to ask Zelder about the plate unit quiz.",
+  "n:nora-new": "Hi Nora, I was thinking of you. Last time we talked about new transfer. introduced around the science wing. How is that going?",
+  "n:moca": "Hi Moça, I was thinking of you. Last time we talked about lunch at the market. talked rubric drafts. tired walk home. How is that going?",
+  "n:prof-wu": "Hi Prof. Wu, I was thinking of you. Last time we talked about office hours. thesis methods chat. How is that going? I still want to email Prof.",
+  "n:zoe-chan": "Hi Zoë, I was thinking of you. Last time we talked about borrowed the maps kit. check the kit in the morning. tired…. How is that going? I still want to check the kit in the morning.",
+  "n:dev-patel": "Hi Dev, it has been 10 days since we caught up. Last time we talked about new routes on the back wall. How is that going?",
+  "n:coach-reyes": "Hi Coach, it has been about 2 weeks since we caught up. Last time we talked about track schedule for spring. How is that going?",
+  "n:amara-okafor-diallo": "Hi Amara, it has been about 2 weeks since we caught up. Last time we talked about coffee walk. rubric and maps talk. so tired today. How is that going?",
+  "n:o-brien": "Hi O'Brien, it has been about 2 weeks since we caught up. Last time we talked about ask o'brien about the fiddle nights. How is that going?",
+  "n:miriam-three": "Hi Miriam, it has been about 3 weeks since we caught up. Last time we talked about third meeting in: ask about the parking spot. How is that going?",
+  "n:princess-flowers-longname-smit": "Hi Princess, it has been about 4 weeks since we caught up. Do you have time to talk this week?",
+  "n:dr-okafor": "Hi Dr. Okafor, it has been about 5 weeks since we caught up. Last time we talked about committee dates and the lit review outline. How is that going?",
+  "n:anna-lise-bergstrom": "Hi Anna-Lise, it has been about 6 weeks since we caught up. Last time we talked about back in the spring we talked about the fiddle nights. How is that going?",
+  "n:an-emoji-person": "Hi An, it has been about 7 weeks since we caught up. Do you have time to talk this week?",
+  "n:marco-retired": "Hi Marco, it has been about 7 weeks since we caught up. Do you have time to talk this week?",
+  "n:hana-suzuki": "Hi Hana, it has been about 9 weeks since we caught up. Do you have time to talk this week?",
+  "n:elias": "Hi Elias, it has been about 10 weeks since we caught up. Last time we talked about elias runs the front desk. ask about the laminator. How is that going?",
+  "n:jo-quiet": "Hi Jo, it has been about 11 weeks since we caught up. Do you have time to talk this week?"
+ }
+}

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- E4: the connection key and people's notes never go to a cloud backup. -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="logbook_secure.xml" />
+</full-backup-content>
