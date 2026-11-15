@@ -13,9 +13,16 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.BarChart
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Search
@@ -118,6 +125,7 @@ fun LogbookShell(
         onIncomingHandled()
     }
 
+    Box(Modifier.fillMaxSize()) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
         bottomBar = {
@@ -143,8 +151,12 @@ fun LogbookShell(
             }
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { speedDial = true }) {
-                Icon(Icons.Rounded.Add, contentDescription = "New entry")
+            FloatingActionButton(
+                onClick = { speedDial = !speedDial },
+                containerColor = LbTheme.colors.coral,
+                contentColor = LbTheme.colors.onCoral,
+            ) {
+                Icon(if (speedDial) Icons.Rounded.Close else Icons.Rounded.Add, contentDescription = "New entry")
             }
         },
     ) { padding ->
@@ -154,7 +166,15 @@ fun LogbookShell(
                 onSearch = { nav.navigate("search") { launchSingleTop = true } },
                 onSettings = { nav.navigate("settings") { launchSingleTop = true } },
             )
-            NavHost(navController = nav, startDestination = start, modifier = Modifier.fillMaxSize()) {
+            NavHost(
+                navController = nav,
+                startDestination = start,
+                modifier = Modifier.fillMaxSize(),
+                enterTransition = { fadeIn(tween(app.logbook.ui.theme.LbMotion.STANDARD_MS)) },
+                exitTransition = { fadeOut(tween(app.logbook.ui.theme.LbMotion.STANDARD_MS)) },
+                popEnterTransition = { fadeIn(tween(app.logbook.ui.theme.LbMotion.STANDARD_MS)) },
+                popExitTransition = { fadeOut(tween(app.logbook.ui.theme.LbMotion.STANDARD_MS)) },
+            ) {
                 composable("connect") {
                     ConnectScreen(vm, onConnected = { nav.openTab("feed") })
                 }
@@ -246,27 +266,62 @@ fun LogbookShell(
         }
     }
 
-    if (speedDial) {
-        Dialog(onDismissRequest = { speedDial = false }) {
-            Column(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text("New", style = LbTextStyles.displayDay, color = LbTheme.colors.ink)
-                SpeedDialItem("Met someone") { speedDial = false; nav.navigate("capture/met") }
-                SpeedDialItem("A thought") { speedDial = false; nav.navigate("capture/note") }
-                SpeedDialItem("Went, ate, did") { speedDial = false; nav.navigate("capture/did") }
-                SpeedDialItem("Watched, listened, read") { speedDial = false; nav.navigate("capture/media") }
-            }
+    AnimatedVisibility(
+        visible = speedDial,
+        enter = fadeIn(tween(app.logbook.ui.theme.LbMotion.SPEED_DIAL_MS)),
+        exit = fadeOut(tween(app.logbook.ui.theme.LbMotion.SPEED_DIAL_MS)),
+    ) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(LbTheme.colors.scrim)
+                .clickable(
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                    indication = null,
+                    onClick = { speedDial = false },
+                ),
+        )
+    }
+    AnimatedVisibility(
+        visible = speedDial,
+        enter = fadeIn(tween(app.logbook.ui.theme.LbMotion.SPEED_DIAL_MS)) +
+            scaleIn(tween(app.logbook.ui.theme.LbMotion.SPEED_DIAL_MS), initialScale = 0.85f, transformOrigin = androidx.compose.ui.graphics.TransformOrigin(1f, 1f)),
+        exit = fadeOut(tween(app.logbook.ui.theme.LbMotion.SPEED_DIAL_MS)) +
+            scaleOut(tween(app.logbook.ui.theme.LbMotion.SPEED_DIAL_MS), targetScale = 0.85f, transformOrigin = androidx.compose.ui.graphics.TransformOrigin(1f, 1f)),
+        modifier = Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 88.dp),
+    ) {
+        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            SpeedDialItem("Met someone", app.logbook.ui.theme.KindTile.PERSON) { speedDial = false; nav.navigate("capture/met") }
+            SpeedDialItem("Watched, listened, read", app.logbook.ui.theme.KindTile.MEDIA) { speedDial = false; nav.navigate("capture/media") }
+            SpeedDialItem("Went, ate, did", app.logbook.ui.theme.KindTile.PLACE) { speedDial = false; nav.navigate("capture/did") }
+            SpeedDialItem("A thought", app.logbook.ui.theme.KindTile.THOUGHT) { speedDial = false; nav.navigate("capture/note") }
         }
+    }
     }
 }
 
 @Composable
-private fun SpeedDialItem(label: String, onClick: () -> Unit) {
-    app.logbook.ui.components.LbButton(label, onClick, primary = false, modifier = Modifier.fillMaxWidth())
+private fun SpeedDialItem(label: String, tile: app.logbook.ui.theme.KindTile, onClick: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier.clickable(
+            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+            indication = null,
+            onClick = onClick,
+        ),
+    ) {
+        androidx.compose.material3.Surface(
+            color = androidx.compose.ui.graphics.Color.White,
+            contentColor = androidx.compose.ui.graphics.Color(0xFF0F1222),
+            shape = app.logbook.ui.theme.LbShape.chip,
+        ) {
+            Text(label, style = LbTextStyles.title, modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp))
+        }
+        Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+            app.logbook.ui.components.LbKindTile(tile, size = 40.dp)
+        }
+    }
 }
 
 @Composable

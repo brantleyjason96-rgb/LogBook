@@ -284,6 +284,56 @@ fun LbStatTile(value: String, label: String, before: String? = null, modifier: M
     }
 }
 
+/** The Margin form field: label above, a rounded 12dp field, placeholder text, optional trailing slot. */
+@Composable
+fun LbTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String? = null,
+    placeholder: String? = null,
+    singleLine: Boolean = false,
+    minLines: Int = 1,
+    trailingIcon: (@Composable () -> Unit)? = null,
+    modifier: Modifier = Modifier,
+) {
+    val colors = LbTheme.colors
+    Column(modifier) {
+        if (label != null) {
+            Text(label, style = LbTextStyles.label, color = colors.mute, modifier = Modifier.padding(bottom = 6.dp, start = 2.dp))
+        }
+        androidx.compose.foundation.text.BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            singleLine = singleLine,
+            minLines = minLines,
+            textStyle = LbTextStyles.field.copy(color = colors.ink),
+            cursorBrush = androidx.compose.ui.graphics.SolidColor(colors.cobalt),
+            modifier = Modifier.fillMaxWidth(),
+            decorationBox = { inner ->
+                Surface(
+                    color = colors.panel,
+                    shape = LbShape.formField,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.line),
+                    modifier = Modifier.heightIn(min = 52.dp),
+                ) {
+                    Row(
+                        Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(Modifier.weight(1f)) {
+                            if (value.isEmpty() && placeholder != null) {
+                                Text(placeholder, style = LbTextStyles.field, color = colors.mute)
+                            }
+                            inner()
+                        }
+                        trailingIcon?.invoke()
+                    }
+                }
+            },
+        )
+    }
+}
+
 /** A round initials avatar, used for people everywhere: Feed, Nudges, Person. */
 @Composable
 fun LbAvatar(initials: String, modifier: Modifier = Modifier, size: Dp = 40.dp) {

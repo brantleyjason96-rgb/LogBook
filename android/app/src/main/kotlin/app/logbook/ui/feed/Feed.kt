@@ -355,10 +355,10 @@ fun SearchScreen(vm: LogbookViewModel, onOpenPerson: (String) -> Unit, onOpenIte
     }
 
     Column(Modifier.fillMaxSize().padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        OutlinedTextField(
+        app.logbook.ui.components.LbTextField(
             value = query,
             onValueChange = { query = it },
-            label = { Text("Search people, titles, notes") },
+            label = "Search people, titles, notes",
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )

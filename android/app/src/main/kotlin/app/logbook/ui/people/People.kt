@@ -206,7 +206,7 @@ fun PersonScreen(
             onDismissRequest = { renameOpen = false },
             title = { Text("Rename") },
             text = {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Name") }, singleLine = true)
+                app.logbook.ui.components.LbTextField(value = name, onValueChange = { name = it }, label = "Name", singleLine = true)
             },
             confirmButton = {
                 TextButton(onClick = { vm.rename(ref, name); renameOpen = false }) { Text("Rename") }

@@ -71,11 +71,11 @@ fun CaptureMetScreen(vm: LogbookViewModel, onDone: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text("Met someone", style = LbTextStyles.displayScreen, color = LbTheme.colors.ink)
-        OutlinedTextField(
+        app.logbook.ui.components.LbTextField(
             value = name,
             onValueChange = { name = it },
-            label = { Text("Who, and what you did") },
-            placeholder = { Text("coffee with Maria, we talked about the move") },
+            label = "Who, and what you did",
+            placeholder = "coffee with Maria, we talked about the move",
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -102,16 +102,17 @@ fun CaptureMetScreen(vm: LogbookViewModel, onDone: () -> Unit) {
                 chips.forEach { p -> LbChip(p.name) { name = p.name } }
             }
         }
-        OutlinedTextField(
+        app.logbook.ui.components.LbTextField(
             value = note,
             onValueChange = { note = it },
-            label = { Text("Note (optional)") },
+            label = "Note (optional)",
+            minLines = 3,
             modifier = Modifier.fillMaxWidth(),
         )
-        OutlinedTextField(
+        app.logbook.ui.components.LbTextField(
             value = place,
             onValueChange = { place = it },
-            label = { Text("Place (optional)") },
+            label = "Place (optional)",
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -147,10 +148,11 @@ fun CaptureThoughtScreen(vm: LogbookViewModel, initialText: String? = null, onDo
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text("A thought", style = LbTextStyles.displayScreen, color = LbTheme.colors.ink)
-        OutlinedTextField(
+        app.logbook.ui.components.LbTextField(
             value = note,
             onValueChange = { note = it },
-            label = { Text("What is on your mind?") },
+            label = "What is on your mind?",
+            minLines = 4,
             modifier = Modifier.fillMaxWidth(),
         )
         Text("About", style = LbTextStyles.label, color = LbTheme.colors.mute)
@@ -177,10 +179,10 @@ fun CaptureDidScreen(vm: LogbookViewModel, onDone: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text("Went, ate, did", style = LbTextStyles.displayScreen, color = LbTheme.colors.ink)
-        OutlinedTextField(
+        app.logbook.ui.components.LbTextField(
             value = name,
             onValueChange = { name = it },
-            label = { Text("What was it?") },
+            label = "What was it?",
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -189,18 +191,19 @@ fun CaptureDidScreen(vm: LogbookViewModel, onDone: () -> Unit) {
                 LbChip(label, kind == key) { kind = key }
             }
         }
-        OutlinedTextField(
+        app.logbook.ui.components.LbTextField(
             value = if (kind in setOf("restaurant", "coffee", "place", "event")) "" else kind,
             onValueChange = { kind = it.trim().lowercase() },
-            label = { Text("Or type a new kind") },
+            label = "Or type a new kind",
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
         app.logbook.ui.components.LbStarPicker(stars, { stars = it })
-        OutlinedTextField(
+        app.logbook.ui.components.LbTextField(
             value = note,
             onValueChange = { note = it },
-            label = { Text("Note (optional)") },
+            label = "Note (optional)",
+            minLines = 3,
             modifier = Modifier.fillMaxWidth(),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -257,10 +260,11 @@ fun CaptureMediaScreen(vm: LogbookViewModel, onDone: () -> Unit) {
                 }
             }
             app.logbook.ui.components.LbStarPicker(stars, { stars = it })
-            OutlinedTextField(
+            app.logbook.ui.components.LbTextField(
                 value = note,
                 onValueChange = { note = it },
-                label = { Text("Note (optional)") },
+                label = "Note (optional)",
+                minLines = 3,
                 modifier = Modifier.fillMaxWidth(),
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -299,11 +303,11 @@ fun CaptureMediaScreen(vm: LogbookViewModel, onDone: () -> Unit) {
             }
         }
 
-        OutlinedTextField(
+        app.logbook.ui.components.LbTextField(
             value = query,
             onValueChange = { query = it },
-            label = { Text("Title") },
-            placeholder = { Text("Type a title. Movie results come from TMDB.") },
+            label = "Title",
+            placeholder = "Type a title. Movie results come from TMDB.",
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )

@@ -58,10 +58,10 @@ fun ConnectScreen(vm: LogbookViewModel, onConnected: () -> Unit) {
             color = LbTheme.colors.ink2,
         )
         LbSyncPill(sync)
-        OutlinedTextField(
+        app.logbook.ui.components.LbTextField(
             value = link,
             onValueChange = { link = it },
-            label = { Text("Setup link") },
+            label = "Setup link",
             modifier = Modifier.fillMaxWidth(),
         )
         LbButton("Use this link", {
@@ -70,17 +70,17 @@ fun ConnectScreen(vm: LogbookViewModel, onConnected: () -> Unit) {
         }, enabled = link.isNotBlank())
 
         LbSectionHeader("Or type it")
-        OutlinedTextField(
+        app.logbook.ui.components.LbTextField(
             value = url,
             onValueChange = { url = it },
-            label = { Text("Apps Script URL") },
+            label = "Apps Script URL",
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
-        OutlinedTextField(
+        app.logbook.ui.components.LbTextField(
             value = key,
             onValueChange = { key = it },
-            label = { Text("Key") },
+            label = "Key",
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -138,24 +138,24 @@ fun SettingsScreen(vm: LogbookViewModel, onBack: () -> Unit, onConnect: () -> Un
         }
 
         LbSectionHeader("Connection")
-        OutlinedTextField(
+        app.logbook.ui.components.LbTextField(
             value = url,
             onValueChange = { url = it },
-            label = { Text("Apps Script URL") },
+            label = "Apps Script URL",
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
-        OutlinedTextField(
+        app.logbook.ui.components.LbTextField(
             value = key,
             onValueChange = { key = it },
-            label = { Text("Key (${connection.keyMasked.ifBlank { "not set" }})") },
+            label = "Key (${connection.keyMasked.ifBlank { "not set" }})",
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
-        OutlinedTextField(
+        app.logbook.ui.components.LbTextField(
             value = tmdb,
             onValueChange = { tmdb = it },
-            label = { Text("TMDB key (${connection.tmdbMasked.ifBlank { "not set" }})") },
+            label = "TMDB key (${connection.tmdbMasked.ifBlank { "not set" }})",
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
