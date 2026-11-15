@@ -334,6 +334,26 @@ fun LbTextField(
     }
 }
 
+/** The Margin bottom sheet: sheetTop radius (24dp), sheetMs motion, used instead of a centred AlertDialog. */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+fun LbSheet(
+    onDismiss: () -> Unit,
+    content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit,
+) {
+    val sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    androidx.compose.material3.ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = LbTheme.colors.panel,
+        contentColor = LbTheme.colors.ink,
+        shape = LbShape.sheetTop,
+        dragHandle = { androidx.compose.material3.BottomSheetDefaults.DragHandle(color = LbTheme.colors.line) },
+    ) {
+        Column(Modifier.padding(horizontal = 20.dp, vertical = 8.dp).padding(bottom = 24.dp), content = content)
+    }
+}
+
 /** A round initials avatar, used for people everywhere: Feed, Nudges, Person. */
 @Composable
 fun LbAvatar(initials: String, modifier: Modifier = Modifier, size: Dp = 40.dp) {
@@ -362,6 +382,31 @@ fun LbStatusChip(label: String, tone: StatusTone, modifier: Modifier = Modifier)
 }
 
 enum class StatusTone { ALERT, WARN, OK, NEUTRAL }
+
+/** A follow-up row: a checkbox that marks it done, the phrase on a mark background, and a caption. */
+@Composable
+fun LbFollowUpRow(text: String, caption: String, onDone: () -> Unit, modifier: Modifier = Modifier) {
+    val colors = LbTheme.colors
+    Row(verticalAlignment = Alignment.Top, modifier = modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        Surface(
+            onClick = onDone,
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp),
+            color = colors.page,
+            border = androidx.compose.foundation.BorderStroke(1.5.dp, colors.coral),
+            modifier = Modifier.padding(top = 2.dp),
+        ) { Box(Modifier.size(22.dp)) }
+        Spacer(Modifier.width(10.dp))
+        Column(Modifier.weight(1f)) {
+            Text(
+                text,
+                style = LbTextStyles.body,
+                color = colors.ink,
+                modifier = Modifier.background(colors.mark, androidx.compose.foundation.shape.RoundedCornerShape(3.dp)).padding(horizontal = 3.dp),
+            )
+            Text(caption, style = LbTextStyles.meta, color = colors.mute)
+        }
+    }
+}
 
 /** A small pill marking a line as a follow-up, as the Feed and Nudges rows show it. */
 @Composable

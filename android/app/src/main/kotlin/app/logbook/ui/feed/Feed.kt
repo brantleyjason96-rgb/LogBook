@@ -1,5 +1,7 @@
 package app.logbook.ui.feed
 
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,9 +14,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -134,7 +138,7 @@ fun FeedScreen(
             )
         }
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
                 LbChip("All", filter == FeedFilter.ALL) { filter = FeedFilter.ALL }
                 LbChip("People", filter == FeedFilter.PEOPLE, count = model.people.size) { filter = FeedFilter.PEOPLE }
                 LbChip("Things", filter == FeedFilter.THINGS) { filter = FeedFilter.THINGS }
@@ -151,7 +155,7 @@ fun FeedScreen(
             }
             FeedFilter.THINGS -> {
                 item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
                         LbChip("All kinds", thingsKind == "all") { thingsKind = "all" }
                         thingsKinds.forEach { k -> LbChip(app.logbook.core.model.Categories.LABEL[k] ?: k, thingsKind == k) { thingsKind = k } }
                     }
@@ -341,10 +345,13 @@ fun DayScreen(vm: LogbookViewModel, date: String, onBack: () -> Unit, onOpenPers
 
 /** M6 Search: people, titles and notes, with the query highlighted in notes. */
 @Composable
-fun SearchScreen(vm: LogbookViewModel, onOpenPerson: (String) -> Unit, onOpenItem: (String) -> Unit) {
+fun SearchScreen(vm: LogbookViewModel, onBack: () -> Unit = {}, onOpenPerson: (String) -> Unit, onOpenItem: (String) -> Unit) {
     val events by vm.events.collectAsState()
     val model by vm.model.collectAsState()
+    val zone = vm.zone()
+    val now = remember(events.size) { vm.now() }
     var query by rememberSaveable { mutableStateOf("") }
+    var recent by rememberSaveable { mutableStateOf(listOf<String>()) }
 
     val hits = remember(events, query) {
         val q = query.trim()
@@ -353,23 +360,72 @@ fun SearchScreen(vm: LogbookViewModel, onOpenPerson: (String) -> Unit, onOpenIte
                 model.titleOf(e).contains(q, ignoreCase = true)
         }
     }
+    val weekThemes = remember(model, now) { app.logbook.core.analytics.themes(model, now, zone).take(6) }
+
+    fun runSearch(q: String) {
+        query = q
+        val trimmed = q.trim()
+        if (trimmed.length >= 2) recent = (listOf(trimmed) + recent.filter { !it.equals(trimmed, ignoreCase = true) }).take(5)
+    }
 
     Column(Modifier.fillMaxSize().padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        app.logbook.ui.components.LbTextField(
-            value = query,
-            onValueChange = { query = it },
-            label = "Search people, titles, notes",
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Text("${hits.size} match${if (hits.size == 1) "" else "es"}", style = LbTextStyles.meta, color = LbTheme.colors.mute)
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(hits, key = { it.id }) { e ->
-                EntryRow(e, model.titleOf(e)) {
-                    when {
-                        e.ref.startsWith("n:") -> onOpenPerson(e.ref)
-                        e.ref.isNotBlank() -> onOpenItem(e.ref)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back", tint = LbTheme.colors.ink2)
+            }
+            app.logbook.ui.components.LbTextField(
+                value = query,
+                onValueChange = { runSearch(it) },
+                placeholder = "Search people, titles, notes",
+                singleLine = true,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        if (query.isBlank()) {
+            if (recent.isNotEmpty()) {
+                Text("RECENT SEARCHES", style = LbTextStyles.meta, color = LbTheme.colors.mute)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                    recent.forEach { r -> LbChip(r) { runSearch(r) } }
+                }
+            }
+            if (weekThemes.isNotEmpty()) {
+                Text("THEMES THIS WEEK", style = LbTextStyles.meta, color = LbTheme.colors.mute)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                    weekThemes.forEach { t -> LbChip(t.word, count = t.cur) { runSearch(t.word) } }
+                }
+            }
+            if (recent.isEmpty() && weekThemes.isEmpty()) {
+                LbEmptyState(KindTile.THOUGHT, "Search your logbook", "People, titles and notes, all in one place.")
+            }
+        } else if (hits.isEmpty()) {
+            LbEmptyState(
+                KindTile.THOUGHT,
+                "No matches",
+                "Nothing in your people, titles or notes matches “${query.trim()}”. Check the spelling or try a shorter word.",
+            )
+        } else {
+            Text("${hits.size} match${if (hits.size == 1) "" else "es"}", style = LbTextStyles.meta, color = LbTheme.colors.mute)
+            val markColor = LbTheme.colors.mark
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(hits, key = { it.id }) { e ->
+                    val annotated = remember(e.note, query) {
+                        if (e.note.isBlank()) null else highlighted(e.note, query, followUps = false, markColor = markColor)
                     }
+                    LbEntryRow(
+                        time = remember(e.whenMs) { java.time.Instant.ofEpochMilli(e.whenMs).atZone(zone).let { "%02d:%02d".format(it.hour, it.minute) } },
+                        tile = if (e.kind == "met") KindTile.PERSON else kindToTile(e.cat ?: e.kind),
+                        title = model.titleOf(e),
+                        subtitle = e.cat?.let { app.logbook.core.model.Categories.displayLabel(it) },
+                        note = e.note.ifBlank { null },
+                        noteAnnotated = annotated,
+                        stars = e.stars,
+                        onClick = {
+                            when {
+                                e.ref.startsWith("n:") -> onOpenPerson(e.ref)
+                                e.ref.isNotBlank() -> onOpenItem(e.ref)
+                            }
+                        },
+                    )
                 }
             }
         }

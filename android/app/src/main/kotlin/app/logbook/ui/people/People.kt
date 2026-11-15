@@ -11,10 +11,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -128,7 +130,7 @@ fun PersonScreen(
             }
         }
         this.item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
                 LbButton("Met just now", { vm.logMet(item.title, note = "", place = "", remindDays = item.remindDays) {} })
                 LbButton("Rename", { renameOpen = true }, primary = false)
                 LbButton("Merge", { mergeOpen = true }, primary = false)
@@ -153,7 +155,7 @@ fun PersonScreen(
         if (topics.isNotEmpty()) {
             this.item { LbSectionHeader("Topics") }
             this.item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
                     topics.take(4).forEach { t -> LbChip(t) { } }
                 }
             }
@@ -161,10 +163,11 @@ fun PersonScreen(
         if (mine.isNotEmpty()) {
             this.item { LbSectionHeader("Open follow-ups", mine.size) }
             items(mine, key = { it.key }) { fu ->
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                    Text(fu.text, style = LbTextStyles.body, color = LbTheme.colors.ink, modifier = Modifier.weight(1f))
-                    TextButton(onClick = { vm.setFollowUpDone(fu.key, true) }) { Text("Done") }
-                }
+                app.logbook.ui.components.LbFollowUpRow(
+                    text = fu.text,
+                    caption = "Noted ${app.logbook.core.model.rel(fu.whenMs, now, zone)}",
+                    onDone = { vm.setFollowUpDone(fu.key, true) },
+                )
             }
         }
         this.item { LbSectionHeader("Check-in draft") }
@@ -202,68 +205,60 @@ fun PersonScreen(
 
     if (renameOpen) {
         var name by remember { mutableStateOf(item.title) }
-        AlertDialog(
-            onDismissRequest = { renameOpen = false },
-            title = { Text("Rename") },
-            text = {
-                app.logbook.ui.components.LbTextField(value = name, onValueChange = { name = it }, label = "Name", singleLine = true)
-            },
-            confirmButton = {
-                TextButton(onClick = { vm.rename(ref, name); renameOpen = false }) { Text("Rename") }
-            },
-            dismissButton = { TextButton(onClick = { renameOpen = false }) { Text("Cancel") } },
-        )
+        app.logbook.ui.components.LbSheet(onDismiss = { renameOpen = false }) {
+            Text("Rename", style = LbTextStyles.displayDay, color = LbTheme.colors.ink)
+            Spacer(Modifier.height(14.dp))
+            app.logbook.ui.components.LbTextField(value = name, onValueChange = { name = it }, label = "Name", singleLine = true)
+            Spacer(Modifier.height(14.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                LbButton("Rename", { vm.rename(ref, name); renameOpen = false })
+                LbButton("Cancel", { renameOpen = false }, primary = false)
+            }
+        }
     }
 
     if (reminderOpen) {
-        AlertDialog(
-            onDismissRequest = { reminderOpen = false },
-            title = { Text("Remind me") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    LbChip("Off", reminder.intervalDays == null) { vm.setReminder(ref, remindDays = 0); reminderOpen = false }
-                    LbChip("Every week", reminder.intervalDays == 7) { vm.setReminder(ref, remindDays = 7); reminderOpen = false }
-                    LbChip("Every 2 weeks", reminder.intervalDays == 14) { vm.setReminder(ref, remindDays = 14); reminderOpen = false }
-                    LbChip("Every 4 weeks", reminder.intervalDays == 28) { vm.setReminder(ref, remindDays = 28); reminderOpen = false }
-                    LbChip("Every 2 months", reminder.intervalDays == 60) { vm.setReminder(ref, remindDays = 60); reminderOpen = false }
-                    LbChip(if (reminder.retired) "Bring back" else "Retire", reminder.retired) {
-                        vm.setReminder(ref, retired = !reminder.retired); reminderOpen = false
-                    }
+        app.logbook.ui.components.LbSheet(onDismiss = { reminderOpen = false }) {
+            Text("Remind me", style = LbTextStyles.displayDay, color = LbTheme.colors.ink)
+            Spacer(Modifier.height(14.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                LbChip("Off", reminder.intervalDays == null) { vm.setReminder(ref, remindDays = 0); reminderOpen = false }
+                LbChip("Every week", reminder.intervalDays == 7) { vm.setReminder(ref, remindDays = 7); reminderOpen = false }
+                LbChip("Every 2 weeks", reminder.intervalDays == 14) { vm.setReminder(ref, remindDays = 14); reminderOpen = false }
+                LbChip("Every 4 weeks", reminder.intervalDays == 28) { vm.setReminder(ref, remindDays = 28); reminderOpen = false }
+                LbChip("Every 2 months", reminder.intervalDays == 60) { vm.setReminder(ref, remindDays = 60); reminderOpen = false }
+                LbChip(if (reminder.retired) "Bring back" else "Retire", reminder.retired) {
+                    vm.setReminder(ref, retired = !reminder.retired); reminderOpen = false
                 }
-            },
-            confirmButton = { TextButton(onClick = { reminderOpen = false }) { Text("Close") } },
-        )
+            }
+        }
     }
 
     if (mergeOpen) {
-        AlertDialog(
-            onDismissRequest = { mergeOpen = false },
-            title = { Text("Merge into") },
-            text = {
-                Column(
-                    modifier = Modifier.verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    val others = model.people.filter { it.ref != ref }
-                    if (others.isEmpty()) {
-                        Text("No other people in the logbook yet.", style = LbTextStyles.body)
-                    }
-                    others.forEach { other ->
-                        LbButton(
-                            "${other.title} · ${other.events.size} entries",
-                            onClick = {
-                                vm.merge(ref, other.ref)
-                                mergeOpen = false
-                                onBack()
-                            },
-                            primary = false,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
+        app.logbook.ui.components.LbSheet(onDismiss = { mergeOpen = false }) {
+            Text("Merge into", style = LbTextStyles.displayDay, color = LbTheme.colors.ink)
+            Spacer(Modifier.height(14.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                val others = model.people.filter { it.ref != ref }
+                if (others.isEmpty()) {
+                    Text("No other people in the logbook yet.", style = LbTextStyles.body, color = LbTheme.colors.ink2)
                 }
-            },
-            confirmButton = { TextButton(onClick = { mergeOpen = false }) { Text("Cancel") } },
-        )
+                others.forEach { other ->
+                    LbButton(
+                        "${other.title} · ${other.events.size} entries",
+                        onClick = {
+                            vm.merge(ref, other.ref)
+                            mergeOpen = false
+                            onBack()
+                        },
+                        primary = false,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+            Spacer(Modifier.height(14.dp))
+            LbButton("Cancel", { mergeOpen = false }, primary = false)
+        }
     }
 }
 
@@ -297,7 +292,7 @@ private fun ReminderCard(
             }
             Text(text, style = LbTextStyles.body, color = colors.ink)
             if (lastMetKey != null) Text("Last met $lastMetKey", style = LbTextStyles.meta, color = colors.mute)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
                 LbButton("Change", onChange, primary = false)
                 if (!retired) LbButton("Snooze a week", onSnooze, primary = false)
             }
@@ -371,7 +366,7 @@ fun ItemScreen(vm: LogbookViewModel, ref: String, onBack: () -> Unit, onAddNote:
             }
         }
         this.item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
                 LbButton("Log again", { vm.logMedia(item.title, item.ref, item.cat ?: "other", null, "") {} })
                 LbButton("Rate again", { rateValue = item.stars?.toFloat() ?: 0f; rateOpen = true }, primary = false)
             }

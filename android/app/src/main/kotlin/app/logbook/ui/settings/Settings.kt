@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.OutlinedTextField
@@ -132,7 +133,7 @@ fun SettingsScreen(vm: LogbookViewModel, onBack: () -> Unit, onConnect: () -> Un
             style = LbTextStyles.label,
             color = LbTheme.colors.ink2,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
             LbButton(if (busy) "Syncing…" else "Sync now", { vm.syncNow() }, enabled = !busy)
             LbButton("Connect", onConnect, primary = false)
         }
@@ -238,7 +239,7 @@ fun RemindersScreen(vm: LogbookViewModel, onBack: () -> Unit) {
             }
         }
         LbSectionHeader("Check once a day at")
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
             listOf(7 to "7 AM", 8 to "8 AM", 12 to "12 PM", 18 to "6 PM").forEach { (h, label) ->
                 LbChip(label, hour.value == h) { hour.value = h; vm.setReminderHour(h) }
             }

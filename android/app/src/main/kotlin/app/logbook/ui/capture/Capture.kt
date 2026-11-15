@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.OutlinedTextField
@@ -79,7 +80,7 @@ fun CaptureMetScreen(vm: LogbookViewModel, onDone: () -> Unit) {
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
             LbButton("Dictate", {
                 val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                     putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
@@ -98,7 +99,7 @@ fun CaptureMetScreen(vm: LogbookViewModel, onDone: () -> Unit) {
             )
         }
         if (chips.isNotEmpty()) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
                 chips.forEach { p -> LbChip(p.name) { name = p.name } }
             }
         }
@@ -117,14 +118,14 @@ fun CaptureMetScreen(vm: LogbookViewModel, onDone: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
         )
         Text("Remind me", style = LbTextStyles.label, color = LbTheme.colors.mute)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
             LbChip("Off", remind == null) { remind = null }
             LbChip("2 weeks", remind == 14) { remind = 14 }
             LbChip("4 weeks", remind == 28) { remind = 28 }
             LbChip("2 months", remind == 60) { remind = 60 }
         }
         Text("Saved on this phone first. It syncs when you are online.", style = LbTextStyles.meta, color = LbTheme.colors.mute)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
             LbButton("Save", {
                 val who = parsed?.name?.ifBlank { name } ?: name
                 val extra = listOfNotNull(parsed?.note?.takeIf { it.isNotBlank() }, note.takeIf { it.isNotBlank() })
@@ -156,11 +157,11 @@ fun CaptureThoughtScreen(vm: LogbookViewModel, initialText: String? = null, onDo
             modifier = Modifier.fillMaxWidth(),
         )
         Text("About", style = LbTextStyles.label, color = LbTheme.colors.mute)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
             LbChip("Nobody", about == null) { about = null }
             model.people.take(3).forEach { p -> LbChip(p.title) { about = p.ref } }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
             LbButton("Save", { vm.logThought(note, about) { onDone() } }, enabled = note.isNotBlank())
             LbButton("Cancel", onDone, primary = false)
         }
@@ -186,7 +187,7 @@ fun CaptureDidScreen(vm: LogbookViewModel, onDone: () -> Unit) {
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
             listOf("restaurant" to "Restaurant", "coffee" to "Coffee", "place" to "Place", "event" to "Event").forEach { (key, label) ->
                 LbChip(label, kind == key) { kind = key }
             }
@@ -206,7 +207,7 @@ fun CaptureDidScreen(vm: LogbookViewModel, onDone: () -> Unit) {
             minLines = 3,
             modifier = Modifier.fillMaxWidth(),
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
             LbButton("Save", {
                 vm.logDid(name, kind, stars.takeIf { it > 0f }?.toDouble(), note) { onDone() }
             }, enabled = name.isNotBlank())
@@ -267,7 +268,7 @@ fun CaptureMediaScreen(vm: LogbookViewModel, onDone: () -> Unit) {
                 minLines = 3,
                 modifier = Modifier.fillMaxWidth(),
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
                 LbButton("Save", {
                     vm.logMedia(displayTitle, picked?.ref, picked?.cat ?: cat, stars.takeIf { it > 0f }?.toDouble(), note) {
                         vm.resetCatalog(); onDone()
@@ -289,7 +290,7 @@ fun CaptureMediaScreen(vm: LogbookViewModel, onDone: () -> Unit) {
     ) {
         Text("Watched, listened, read", style = LbTextStyles.displayScreen, color = LbTheme.colors.ink)
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
             listOf(
                 "movie" to "Movie", "tv" to "TV", "podcast" to "Podcast",
                 "album" to "Album", "song" to "Song",
@@ -297,7 +298,7 @@ fun CaptureMediaScreen(vm: LogbookViewModel, onDone: () -> Unit) {
                 LbChip(label, cat == key) { cat = key; vm.resetCatalog() }
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
             listOf("book" to "Book", "recipe" to "Recipe", "game" to "Game").forEach { (key, label) ->
                 LbChip(label, cat == key) { cat = key; vm.resetCatalog() }
             }

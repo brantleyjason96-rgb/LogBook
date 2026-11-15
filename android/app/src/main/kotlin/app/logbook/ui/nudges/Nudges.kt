@@ -1,6 +1,7 @@
 package app.logbook.ui.nudges
 
 import android.content.Intent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -148,17 +150,15 @@ fun NudgesScreen(
 
         this.item { LbSectionHeader("Open loops", allFollowUps.size) }
         items(allFollowUps.take(40), key = { it.key }) { fu ->
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Column(Modifier.weight(1f)) {
-                    Text(fu.text, style = LbTextStyles.body, color = LbTheme.colors.ink)
-                    Text(
-                        listOf(fu.ref.takeIf { it.isNotBlank() } ?: "Thought", fu.key).joinToString(" · "),
-                        style = LbTextStyles.meta,
-                        color = LbTheme.colors.mute,
-                    )
-                }
-                TextButton(onClick = { vm.setFollowUpDone(fu.key, true) }) { Text("Done") }
-            }
+            app.logbook.ui.components.LbFollowUpRow(
+                text = fu.text,
+                caption = if (fu.ref.isBlank()) {
+                    "Noted ${app.logbook.core.model.rel(fu.whenMs, now, zone)}"
+                } else {
+                    "From ${model.by[fu.ref]?.title ?: "your note"} · ${app.logbook.core.model.rel(fu.whenMs, now, zone)}"
+                },
+                onDone = { vm.setFollowUpDone(fu.key, true) },
+            )
         }
 
         this.item { LbSectionHeader("Looks like right now") }

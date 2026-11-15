@@ -198,6 +198,7 @@ fun LogbookShell(
                 composable("search") {
                     SearchScreen(
                         vm = vm,
+                        onBack = { nav.popBackStack() },
                         onOpenPerson = { nav.navigate("person/${encode(it)}") },
                         onOpenItem = { nav.navigate("item/${encode(it)}") },
                     )
