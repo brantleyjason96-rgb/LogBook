@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,6 +21,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.BarChart
 import androidx.compose.material.icons.rounded.Close
@@ -101,6 +103,7 @@ fun LogbookShell(
 
     var tab by rememberSaveable { mutableStateOf("feed") }
     var speedDial by rememberSaveable { mutableStateOf(false) }
+    var accountOpen by rememberSaveable { mutableStateOf(false) }
 
     // The start destination is fixed once: a link or shortcut opens its route,
     // a fresh install opens Connect, everything else opens the Feed.
@@ -164,7 +167,7 @@ fun LogbookShell(
             Header(
                 syncState = syncState,
                 onSearch = { nav.navigate("search") { launchSingleTop = true } },
-                onSettings = { nav.navigate("settings") { launchSingleTop = true } },
+                onSettings = { accountOpen = true },
             )
             NavHost(
                 navController = nav,
@@ -298,6 +301,94 @@ fun LogbookShell(
             SpeedDialItem("A thought", app.logbook.ui.theme.KindTile.THOUGHT) { speedDial = false; nav.navigate("capture/note") }
         }
     }
+    if (accountOpen) {
+        AccountSheet(
+            vm = vm,
+            syncState = syncState,
+            onDismiss = { accountOpen = false },
+            onSettings = { accountOpen = false; nav.navigate("settings") },
+            onReminders = { accountOpen = false; nav.navigate("settings/reminders") },
+            onDisconnect = { accountOpen = false; vm.disconnect() },
+        )
+    }
+    }
+}
+
+@Composable
+private fun AccountSheet(
+    vm: LogbookViewModel,
+    syncState: app.logbook.core.sync.SyncState,
+    onDismiss: () -> Unit,
+    onSettings: () -> Unit,
+    onReminders: () -> Unit,
+    onDisconnect: () -> Unit,
+) {
+    val device by vm.device.collectAsState()
+    val colors = LbTheme.colors
+    app.logbook.ui.components.LbSheet(onDismiss = onDismiss) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            app.logbook.ui.components.LbAvatar("Me", size = 48.dp)
+            Spacer(Modifier.width(12.dp))
+            Column {
+                Text("This phone", style = LbTextStyles.displayDay, color = colors.ink)
+                Text("${device.entries} entries stored here", style = LbTextStyles.label, color = colors.mute)
+            }
+        }
+        Spacer(Modifier.height(14.dp))
+        androidx.compose.material3.Surface(
+            color = colors.panel,
+            shape = app.logbook.ui.theme.LbShape.card,
+            border = androidx.compose.foundation.BorderStroke(1.dp, colors.line),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                app.logbook.ui.components.LbSyncPill(syncState)
+                Text(
+                    if (syncState is app.logbook.core.sync.SyncState.Synced) "Everything on this phone is in your Sheet." else "Saved on this phone. It syncs when you are online.",
+                    style = LbTextStyles.body,
+                    color = colors.ink2,
+                )
+                app.logbook.ui.components.LbButton("Sync now", { vm.syncNow() })
+            }
+        }
+        Spacer(Modifier.height(10.dp))
+        AccountRow("Settings", "Connection, this device, privacy", onSettings)
+        AccountRow(
+            "Reminders",
+            if (vm.notificationsAllowed()) "Notifications on · checked daily at ${vm.reminderHour()}:00" else "Notifications off",
+            onReminders,
+        )
+        Spacer(Modifier.height(4.dp))
+        androidx.compose.material3.Surface(
+            onClick = onDisconnect,
+            color = androidx.compose.ui.graphics.Color.Transparent,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(Modifier.padding(vertical = 10.dp)) {
+                Text("Disconnect this phone", style = LbTextStyles.title, color = colors.coral)
+                Text("Removes the key and the local copy", style = LbTextStyles.label, color = colors.mute)
+            }
+        }
+    }
+}
+
+@Composable
+private fun AccountRow(title: String, subtitle: String, onClick: () -> Unit) {
+    val colors = LbTheme.colors
+    androidx.compose.material3.Surface(
+        onClick = onClick,
+        color = colors.panel,
+        shape = app.logbook.ui.theme.LbShape.card,
+        border = androidx.compose.foundation.BorderStroke(1.dp, colors.line),
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+    ) {
+        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(title, style = LbTextStyles.title, color = colors.ink)
+                Text(subtitle, style = LbTextStyles.label, color = colors.mute)
+            }
+            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = colors.mute)
+        }
     }
 }
 

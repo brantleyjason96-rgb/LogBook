@@ -109,7 +109,7 @@ fun ReviewScreen(vm: LogbookViewModel) {
         }
         if (themeRows.isNotEmpty()) {
             this.item { LbSectionHeader("Themes") }
-            items(themeRows, key = { it.word }) { t ->
+            items(themeRows, key = { "theme:" + it.word }) { t ->
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Text(t.word, style = LbTextStyles.title, color = LbTheme.colors.ink, modifier = Modifier.weight(1f))
                     Text(
@@ -122,13 +122,13 @@ fun ReviewScreen(vm: LogbookViewModel) {
         }
         if (noticeRows.isNotEmpty()) {
             this.item { LbSectionHeader("Notices") }
-            items(noticeRows, key = { it.text }) { n ->
+            items(noticeRows, key = { "notice:" + it.text }) { n ->
                 Text(n.text, style = LbTextStyles.body, color = LbTheme.colors.ink2)
             }
         }
         if (taste.isNotEmpty()) {
             this.item { LbSectionHeader("Taste") }
-            items(taste, key = { it.cat }) { t ->
+            items(taste, key = { "taste:" + it.cat }) { t ->
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Text(Categories.displayLabel(t.cat), style = LbTextStyles.title, color = LbTheme.colors.ink, modifier = Modifier.weight(1f))
                     Text("${t.n} · ${String.format("%.1f", t.avg)}", style = LbTextStyles.meta, color = LbTheme.colors.mute)
