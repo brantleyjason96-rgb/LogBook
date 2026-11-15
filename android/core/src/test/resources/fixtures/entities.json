@@ -1,0 +1,342 @@
+{
+ "note": "SYNTHETIC fixtures (A0 not supplied yet).",
+ "nowMs": 1794759120000,
+ "entities": [
+  {
+   "ref": "n:maria-alvarez",
+   "title": "Maria Alvarez",
+   "cat": "person",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "n:priya-nair",
+   "title": "Priya Nair",
+   "cat": "person",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "n:ms-gamilah",
+   "title": "Ms. Gamilah",
+   "cat": "person",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "n:dev-patel",
+   "title": "Dev Patel",
+   "cat": "person",
+   "remindDays": null,
+   "snoozedUntil": "2026-11-25",
+   "retired": false
+  },
+  {
+   "ref": "n:dr-okafor",
+   "title": "Dr. Okafor",
+   "cat": "person",
+   "remindDays": 28,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "n:renee-zelder",
+   "title": "Renée Zelder",
+   "cat": "person",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "n:moca",
+   "title": "Moça",
+   "cat": "person",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "n:o-brien",
+   "title": "O'Brien",
+   "cat": "person",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "n:amara-okafor-diallo",
+   "title": "Amara Okafor-Diallo",
+   "cat": "person",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "n:zoe-chan",
+   "title": "Zoë Chan",
+   "cat": "person",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "n:prof-wu",
+   "title": "Prof. Wu",
+   "cat": "person",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "n:coach-reyes",
+   "title": "Coach Reyes",
+   "cat": "person",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "n:elias",
+   "title": "Elias",
+   "cat": "person",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "n:princess-flowers-longname-smit",
+   "title": "Princess Flowers Longname-Smith",
+   "cat": "person",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "n:anna-lise-bergstrom",
+   "title": "Anna-Lise Bergström",
+   "cat": "person",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "n:hana-suzuki",
+   "title": "Hana Suzuki",
+   "cat": "person",
+   "remindDays": 21,
+   "snoozedUntil": "2026-11-20",
+   "retired": false
+  },
+  {
+   "ref": "n:marco-retired",
+   "title": "Marco Retired",
+   "cat": "person",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": true
+  },
+  {
+   "ref": "n:nora-new",
+   "title": "Nora New",
+   "cat": "person",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "n:miriam-three",
+   "title": "Miriam Three",
+   "cat": "person",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "n:jo-quiet",
+   "title": "Jo Quiet",
+   "cat": "person",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "n:an-emoji-person",
+   "title": "An Emoji Person 😄",
+   "cat": "person",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "m:past-lives",
+   "title": "Past Lives",
+   "cat": "movie",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "t:severance",
+   "title": "Severance",
+   "cat": "tv",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "b:braiding-sweetgrass",
+   "title": "Braiding Sweetgrass",
+   "cat": "book",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "x:hazels-coffee",
+   "title": "Hazel's Coffee",
+   "cat": "coffee",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "p:field-notes-hour",
+   "title": "The Field Notes Hour",
+   "cat": "podcast",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "a:lake-loop",
+   "title": "Lake Loop - Morning Sessions",
+   "cat": "music",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "s:cardamom",
+   "title": "Lake Loop - Cardamom",
+   "cat": "song",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "r:cardamom-buns",
+   "title": "Cardamom buns",
+   "cat": "recipe",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "t:the-bear",
+   "title": "The Bear",
+   "cat": "tv",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "b:dune",
+   "title": "Dune",
+   "cat": "book",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "m:the-holdovers",
+   "title": "The Holdovers",
+   "cat": "movie",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "x:taqueria",
+   "title": "Taqueria",
+   "cat": "restaurant",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "x:climbing-gym",
+   "title": "Climbing gym",
+   "cat": "place",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "x:university-library",
+   "title": "University library",
+   "cat": "place",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "x:lakeside-park",
+   "title": "Lakeside Park",
+   "cat": "place",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "x:school",
+   "title": "School",
+   "cat": "place",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "x:run-club",
+   "title": "Run club",
+   "cat": "place",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "x:video-call",
+   "title": "Video call",
+   "cat": "place",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "x:farmers-market",
+   "title": "Farmers market",
+   "cat": "place",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "m:arrival",
+   "title": "Arrival",
+   "cat": "movie",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  },
+  {
+   "ref": "t:slow-horses",
+   "title": "Slow Horses",
+   "cat": "tv",
+   "remindDays": null,
+   "snoozedUntil": null,
+   "retired": false
+  }
+ ]
+}

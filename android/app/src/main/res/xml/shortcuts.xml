@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="met"
+        android:enabled="true"
+        android:icon="@drawable/ic_launcher_fg"
+        android:shortcutShortLabel="@string/shortcut_met">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.logbook"
+            android:targetClass="app.logbook.MainActivity"
+            android:data="logbook://capture/met" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="thought"
+        android:enabled="true"
+        android:icon="@drawable/ic_launcher_fg"
+        android:shortcutShortLabel="@string/shortcut_thought">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.logbook"
+            android:targetClass="app.logbook.MainActivity"
+            android:data="logbook://capture/note" />
+    </shortcut>
+</shortcuts>

@@ -1,0 +1,96 @@
+{
+  "name": "Logbook Margin",
+  "version": "1.0",
+  "note": "Fixed palette. Do not use Material You dynamic colour. 1 dp = 1 CSS px in the mockup. Font sizes are sp.",
+  "color": {
+    "light": {
+      "page": "#FBFBFD", "panel": "#FFFFFF", "ink": "#0F1222", "ink2": "#464B63", "mute": "#62677D",
+      "line": "rgba(15,18,34,0.11)", "cobalt": "#2B50F5", "onCobalt": "#FFFFFF", "soft": "#EDF0FF",
+      "coral": "#D63B1F", "onCoral": "#FFFFFF", "mark": "#FFE35C", "ok": "#1B9E6A", "warn": "#8A5A00", "star": "#D18A00",
+      "scrim": "rgba(15,18,34,0.5)", "keyboardKey": "#E8EAF2"
+    },
+    "dark": {
+      "page": "#0D0F1A", "panel": "#151828", "ink": "#ECEEF8", "ink2": "#B5BAD0", "mute": "#8D93AB",
+      "line": "rgba(236,238,248,0.12)", "cobalt": "#8FA3FF", "onCobalt": "#0D1233", "soft": "#1D2340",
+      "coral": "#FF7A5E", "onCoral": "#2A0C05", "mark": "rgba(255,227,92,0.28)", "ok": "#52D49B", "warn": "#F0B84A", "star": "#F0B84A",
+      "scrim": "rgba(0,0,0,0.6)", "keyboardKey": "#232640"
+    },
+    "kindTiles": {
+      "light": {
+        "person": { "bg": "#FFE1D9", "fg": "#A8321B" }, "thought": { "bg": "#E6EAFF", "fg": "#2B50F5" },
+        "media": { "bg": "#E3F4EA", "fg": "#146C47" }, "place": { "bg": "#FFF1C2", "fg": "#7A5A00" }, "book": { "bg": "#F0E6FF", "fg": "#6A3FC4" }
+      },
+      "dark": {
+        "person": { "bg": "#3A1F1A", "fg": "#FF9C85" }, "thought": { "bg": "#1F2750", "fg": "#9DB0FF" },
+        "media": { "bg": "#14301F", "fg": "#6FD3A0" }, "place": { "bg": "#3A3012", "fg": "#F0CC5C" }, "book": { "bg": "#2B2048", "fg": "#C3A8FF" }
+      }
+    },
+    "kindToTile": {
+      "met": "person", "note": "thought", "movie": "media", "tv": "media", "podcast": "media", "album": "media", "song": "media", "game": "media",
+      "book": "book", "recipe": "book", "went": "place", "restaurant": "place", "coffee": "place", "place": "place", "event": "place"
+    },
+    "roles": {
+      "cobalt": "Navigation and primary action: links, active tab, week card, primary buttons.",
+      "coral": "Needs you: New button, Save, reminder due, follow-up tag, errors.",
+      "mark": "Highlighter. Only for follow-up phrases and search matches. Text on it stays ink.",
+      "ok": "Dots only (synced). Too light for text on white: never use it for words.",
+      "star": "Star glyphs only. Always shown with the number in ink2 next to it.",
+      "warn": "Slipping, Quiet and waiting, as text and outline."
+    },
+    "material3": {
+      "primary": "cobalt", "onPrimary": "onCobalt", "primaryContainer": "soft", "onPrimaryContainer": "cobalt",
+      "tertiary": "coral", "onTertiary": "onCoral", "error": "coral", "onError": "onCoral",
+      "background": "page", "onBackground": "ink", "surface": "panel", "onSurface": "ink", "onSurfaceVariant": "ink2",
+      "outline": "line", "outlineVariant": "line", "inverseSurface": "ink", "inverseOnSurface": "page", "scrim": "scrim"
+    }
+  },
+  "type": {
+    "families": {
+      "display": { "name": "Instrument Serif", "weights": [400], "bundle": "res/font/instrument_serif_regular.ttf" },
+      "text": { "name": "Plus Jakarta Sans", "weights": [400, 500, 700], "bundle": "res/font/plus_jakarta_sans_{regular,medium,bold}.ttf" },
+      "meta": { "name": "DM Mono", "weights": [400, 500], "bundle": "res/font/dm_mono_{regular,medium}.ttf" }
+    },
+    "styles": {
+      "displayBig": { "family": "display", "sizeSp": 44, "lineHeight": 0.95, "use": "Week card number" },
+      "displayHero": { "family": "display", "sizeSp": 52, "lineHeight": 1.0, "use": "Connect screen title only" },
+      "displayScreen": { "family": "display", "sizeSp": 32, "lineHeight": 1.05, "use": "Screen titles, person name, stat tile numbers" },
+      "displayDay": { "family": "display", "sizeSp": 26, "lineHeight": 1.0, "use": "Day headers, card headlines, sheet titles" },
+      "displayStory": { "family": "display", "sizeSp": 20, "lineHeight": 1.35, "use": "Week story paragraph on Review" },
+      "title": { "family": "text", "weight": 700, "sizeSp": 15, "use": "Entry titles, row titles, links" },
+      "body": { "family": "text", "weight": 400, "sizeSp": 14, "lineHeight": 1.45, "use": "Notes, chips (500), buttons (700)" },
+      "field": { "family": "text", "weight": 400, "sizeSp": 16, "use": "Text typed into form fields" },
+      "label": { "family": "text", "weight": 500, "sizeSp": 12, "use": "Kind labels, helper text, field labels" },
+      "nav": { "family": "text", "weight": 500, "sizeSp": 11, "use": "Bottom navigation labels, tags" },
+      "meta": { "family": "meta", "weight": 500, "sizeSp": 11, "use": "Times, counts, section labels (uppercase, 0.08em)" }
+    }
+  },
+  "shape": {
+    "gridDp": 4, "screenMarginDp": 14, "hairlineDp": 1,
+    "radiusDp": { "card": 20, "chip": 17, "button": 20, "searchField": 24, "formField": 12, "kindTile": 9, "statTile": 16, "sheetTop": 24, "menu": 14, "snackbar": 12, "newButton": 26, "tag": 99 },
+    "sizeDp": { "chipHeight": 34, "minTouch": 48, "buttonHeight": 40, "saveButtonHeight": 50, "newButtonHeight": 52, "searchFieldHeight": 48, "formFieldHeight": 52, "kindTile": 30, "avatar": 40, "avatarLarge": 60, "navIndicator": [60, 30], "timeColumn": 58 },
+    "elevation": "None. Hairlines and tonal fills only. The New button is the only element with a shadow (0 6dp 16dp, coral at 30%)."
+  },
+  "motion": {
+    "standardMs": 200, "use": "Chip and tab changes",
+    "feedCrossfadeMs": 150,
+    "speedDialMs": 300, "speedDialStaggerMs": 30, "speedDialEasing": "cubic-bezier(0.2, 0.8, 0.2, 1)", "speedDialFrom": "scale 0.85, 8dp down, alpha 0",
+    "sheetMs": 250,
+    "reducedMotion": "Remove all of it when the system animator scale is 0 or 'Remove animations' is on."
+  },
+  "fontScale": {
+    "rule": "All text is sp. At a font scale of 1.5 or more, switch to the stacked layouts.",
+    "stackedAt": 1.5,
+    "changes": [
+      "LbEntryRow: the time moves to its own line above the tile and title",
+      "LbStatTile groups and LbWeekCard: one column",
+      "LbPersonRow: status tag and mini bars move under the name",
+      "LbNewButton: icon only (keeps its accessible label)",
+      "LbSearchField placeholder shortens to 'Search'",
+      "LbCategoryBar: label on its own line; LbThemeRow: hide the meter"
+    ]
+  },
+  "layout": {
+    "phone": "Single pane. Bottom navigation with three tabs. New button floats above the nav on Feed, Nudges, Review and Today.",
+    "tablet": "600 dp and wider: navigation rail (New button on top), list pane 372 dp, detail pane fills the rest. Sheets become centred dialogs 420 dp wide."
+  }
+}

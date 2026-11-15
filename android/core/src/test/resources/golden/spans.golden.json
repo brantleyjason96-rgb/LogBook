@@ -1,0 +1,311 @@
+{
+ "followUps": [
+  {
+   "note": "Walked the lake loop. She is applying for the instructional coach job. Ask how the interview goes.",
+   "spans": [
+    [
+     71,
+     96
+    ]
+   ]
+  },
+  {
+   "note": "Ask Ms. Gamilah about WIDA sentence frames for the plate tectonics unit.",
+   "spans": [
+    [
+     0,
+     70
+    ]
+   ]
+  },
+  {
+   "note": "Grading done early. Try the cardamom latte again.",
+   "spans": [
+    [
+     20,
+     47
+    ]
+   ]
+  },
+  {
+   "note": "Wants to mix up the unit order. Ask Zelder about the plate unit quiz.",
+   "spans": [
+    [
+     32,
+     67
+    ]
+   ]
+  },
+  {
+   "note": "Remember to book the bus for the field trip.",
+   "spans": [
+    [
+     12,
+     42
+    ]
+   ]
+  },
+  {
+   "note": "Quiet at lunch. Try the cardamom latte again.",
+   "spans": [
+    [
+     16,
+     43
+    ]
+   ]
+  },
+  {
+   "note": "Need to send Dr. Okafor the lit review outline.",
+   "spans": [
+    [
+     8,
+     45
+    ]
+   ]
+  },
+  {
+   "note": "She wants to borrow the soil sample kit. Bring the kit Monday.",
+   "spans": [
+    [
+     41,
+     60
+    ]
+   ]
+  },
+  {
+   "note": "Rubric language for the lab report. Ask Ms. Gamilah about WIDA sentence frames for the plate tectonics unit.",
+   "spans": [
+    [
+     36,
+     106
+    ]
+   ]
+  },
+  {
+   "note": "Soil sample kit talk. Bring the kit Monday.",
+   "spans": [
+    [
+     22,
+     41
+    ]
+   ]
+  },
+  {
+   "note": "Should email Prof. Wu the corrected citations.",
+   "spans": [
+    [
+     7,
+     16
+    ]
+   ]
+  },
+  {
+   "note": "Borrowed the maps kit. Check the kit in the morning. Tired but fine.",
+   "spans": [
+    [
+     23,
+     50
+    ]
+   ]
+  },
+  {
+   "note": "Practice speaking drills. Call Moça to practice.",
+   "spans": [
+    [
+     26,
+     46
+    ]
+   ]
+  },
+  {
+   "note": "Ask O'Brien about the fiddle nights.",
+   "spans": [
+    [
+     0,
+     34
+    ]
+   ]
+  },
+  {
+   "note": "Baking practise. Should try the seeded version next.",
+   "spans": [
+    [
+     24,
+     50
+    ]
+   ]
+  },
+  {
+   "note": "Need to check the maps kit back in. Check the kit Friday.",
+   "spans": [
+    [
+     8,
+     33
+    ],
+    [
+     36,
+     55
+    ]
+   ]
+  },
+  {
+   "note": "Check the maps kit shelf labels.",
+   "spans": [
+    [
+     0,
+     30
+    ]
+   ]
+  },
+  {
+   "note": "Bring the kit Monday.",
+   "spans": [
+    [
+     0,
+     19
+    ]
+   ]
+  },
+  {
+   "note": "Remember to reserve the projector.",
+   "spans": [
+    [
+     12,
+     32
+    ]
+   ]
+  },
+  {
+   "note": "Need to file the field trip forms.",
+   "spans": [
+    [
+     8,
+     32
+    ]
+   ]
+  },
+  {
+   "note": "Ask the front office about the bus rules.",
+   "spans": [
+    [
+     0,
+     39
+    ]
+   ]
+  },
+  {
+   "note": "Elias runs the front desk. Ask about the laminator.",
+   "spans": [
+    [
+     27,
+     49
+    ]
+   ]
+  },
+  {
+   "note": "Maps kit again. Check it back in Friday.",
+   "spans": [
+    [
+     16,
+     38
+    ]
+   ]
+  }
+ ],
+ "matches": [
+  {
+   "note": "Week plan: rubric on Monday, maps lab on Wednesday.",
+   "query": "rubric",
+   "spans": [
+    [
+     11,
+     16
+    ]
+   ]
+  },
+  {
+   "note": "Week plan: rubric on Monday, maps lab on Wednesday.",
+   "query": "zzzz",
+   "spans": []
+  },
+  {
+   "note": "She wants to borrow the soil sample kit. Bring the kit Monday.",
+   "query": "kit",
+   "spans": [
+    [
+     36,
+     38
+    ],
+    [
+     51,
+     53
+    ]
+   ]
+  },
+  {
+   "note": "Week plan: rubric on Monday, maps lab on Wednesday.",
+   "query": "zzzz",
+   "spans": []
+  },
+  {
+   "note": "Grading done early. Try the cardamom latte again.",
+   "query": "cardamom",
+   "spans": [
+    [
+     28,
+     35
+    ]
+   ]
+  },
+  {
+   "note": "Week plan: rubric on Monday, maps lab on Wednesday.",
+   "query": "zzzz",
+   "spans": []
+  },
+  {
+   "note": "Week plan: rubric on Monday, maps lab on Wednesday.",
+   "query": "maps",
+   "spans": [
+    [
+     29,
+     32
+    ]
+   ]
+  },
+  {
+   "note": "Week plan: rubric on Monday, maps lab on Wednesday.",
+   "query": "zzzz",
+   "spans": []
+  },
+  {
+   "note": "Ask Ms. Gamilah about WIDA sentence frames for the plate tectonics unit.",
+   "query": "gamilah",
+   "spans": [
+    [
+     8,
+     14
+    ]
+   ]
+  },
+  {
+   "note": "Week plan: rubric on Monday, maps lab on Wednesday.",
+   "query": "zzzz",
+   "spans": []
+  },
+  {
+   "note": "Ask Ms. Gamilah about WIDA sentence frames for the plate tectonics unit.",
+   "query": "WIDA",
+   "spans": [
+    [
+     22,
+     25
+    ]
+   ]
+  },
+  {
+   "note": "Week plan: rubric on Monday, maps lab on Wednesday.",
+   "query": "zzzz",
+   "spans": []
+  }
+ ]
+}

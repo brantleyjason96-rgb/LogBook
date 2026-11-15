@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Logbook</string>
+    <string name="tab_feed">Feed</string>
+    <string name="tab_nudges">Nudges</string>
+    <string name="tab_review">Review</string>
+    <string name="new_entry">New entry</string>
+    <string name="search_hint">Search people, titles, notes</string>
+    <string name="search_hint_short">Search</string>
+    <string name="account">Account</string>
+    <string name="sync_now">Sync now</string>
+    <string name="saved_on_phone_first">Saved to this phone first. It syncs when you are online.</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete_confirm">Tap again to remove</string>
+    <string name="met_someone">Met someone</string>
+    <string name="a_thought">A thought</string>
+    <string name="went_ate_did">Went, ate, did</string>
+    <string name="watched_listened_read">Watched, listened, read</string>
+    <string name="reminders_channel_name">Contact reminders</string>
+    <string name="reminders_channel_desc">Nudges to reach out to people you have not seen in a while.</string>
+    <string name="widget_description">Quick capture and today count</string>
+    <string name="shortcut_met">Met someone</string>
+    <string name="shortcut_thought">Thought</string>
+</resources>
