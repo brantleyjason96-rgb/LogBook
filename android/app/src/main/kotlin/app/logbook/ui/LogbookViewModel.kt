@@ -159,6 +159,16 @@ class LogbookViewModel(app: Application) : AndroidViewModel(app) {
         _message.value = "Checking who is due…"
     }
 
+    fun reminderHour(): Int = ReminderWorker.hour(getApplication())
+
+    fun setReminderHour(hour: Int) {
+        ReminderWorker.scheduleAt(getApplication(), hour)
+        _message.value = "Logbook checks once a day at $hour:00."
+    }
+
+    /** People with an explicit reminder interval set, for the Reminders screen. */
+    fun peopleWithReminders(): List<CoreItem> = _model.value.people.filter { it.remindDays != null && it.remindDays!! > 0 }
+
     fun clearLocalCopy() {
         viewModelScope.launch {
             repo.clearLocalCopy()

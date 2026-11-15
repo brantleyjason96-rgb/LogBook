@@ -1,12 +1,17 @@
 package app.logbook.ui.shell
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
@@ -196,6 +201,7 @@ fun LogbookShell(
                         vm = vm,
                         ref = decode(entry.arguments?.getString("ref").orEmpty()),
                         onBack = { nav.popBackStack() },
+                        onAddNote = { nav.navigate("capture/note") },
                     )
                 }
                 composable(
@@ -230,7 +236,11 @@ fun LogbookShell(
                         vm = vm,
                         onBack = { nav.popBackStack() },
                         onConnect = { nav.navigate("connect") },
+                        onReminders = { nav.navigate("settings/reminders") },
                     )
+                }
+                composable("settings/reminders") {
+                    app.logbook.ui.settings.RemindersScreen(vm = vm, onBack = { nav.popBackStack() })
                 }
             }
         }
@@ -270,15 +280,34 @@ private fun Header(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("Logbook", style = LbTextStyles.displayDay, color = colors.ink)
-        Spacer(Modifier.width(10.dp))
-        LbSyncPill(syncState)
-        Spacer(Modifier.weight(1f))
-        IconButton(onClick = onSearch) {
-            Icon(Icons.Rounded.Search, contentDescription = "Search", tint = colors.ink2)
+        androidx.compose.material3.Surface(
+            onClick = onSearch,
+            color = colors.panel,
+            shape = app.logbook.ui.theme.LbShape.chip,
+            border = androidx.compose.foundation.BorderStroke(1.dp, colors.line),
+            modifier = Modifier.weight(1f).heightIn(min = 44.dp),
+        ) {
+            Row(Modifier.padding(horizontal = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.Search, contentDescription = null, tint = colors.mute, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Search people, titles, notes", style = LbTextStyles.body, color = colors.mute)
+            }
         }
-        IconButton(onClick = onSettings) {
-            Icon(Icons.Rounded.Settings, contentDescription = "Settings", tint = colors.ink2)
+        Spacer(Modifier.width(10.dp))
+        Box {
+            app.logbook.ui.components.LbAvatar("Me", modifier = Modifier.clickable(onClick = onSettings))
+            val dot = when (syncState) {
+                is app.logbook.core.sync.SyncState.Synced -> colors.ok
+                is app.logbook.core.sync.SyncState.Waiting, is app.logbook.core.sync.SyncState.Syncing -> colors.warn
+                is app.logbook.core.sync.SyncState.WrongKey, is app.logbook.core.sync.SyncState.OldScript -> colors.coral
+                else -> colors.mute
+            }
+            Box(
+                Modifier
+                    .size(10.dp)
+                    .align(Alignment.BottomEnd)
+                    .background(dot, androidx.compose.foundation.shape.CircleShape),
+            )
         }
     }
 }

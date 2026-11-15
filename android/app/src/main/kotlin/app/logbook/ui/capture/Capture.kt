@@ -16,6 +16,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -188,7 +189,14 @@ fun CaptureDidScreen(vm: LogbookViewModel, onDone: () -> Unit) {
                 LbChip(label, kind == key) { kind = key }
             }
         }
-        StarSlider(stars) { stars = it }
+        OutlinedTextField(
+            value = if (kind in setOf("restaurant", "coffee", "place", "event")) "" else kind,
+            onValueChange = { kind = it.trim().lowercase() },
+            label = { Text("Or type a new kind") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        app.logbook.ui.components.LbStarPicker(stars, { stars = it })
         OutlinedTextField(
             value = note,
             onValueChange = { note = it },
@@ -204,15 +212,72 @@ fun CaptureDidScreen(vm: LogbookViewModel, onDone: () -> Unit) {
     }
 }
 
+/** M8c/d: search the catalog, then a separate "Rate it" step, as two views of one screen. */
 @Composable
 fun CaptureMediaScreen(vm: LogbookViewModel, onDone: () -> Unit) {
-    var title by remember { mutableStateOf("") }
     var cat by remember { mutableStateOf("movie") }
-    var note by remember { mutableStateOf("") }
-    var stars by remember { mutableFloatStateOf(0f) }
     var query by remember { mutableStateOf("") }
     var picked by remember { mutableStateOf<CatalogItem?>(null) }
+    var typedTitle by remember { mutableStateOf<String?>(null) }
+    var stars by remember { mutableFloatStateOf(0f) }
+    var note by remember { mutableStateOf("") }
     val catalog by vm.catalogState.collectAsState()
+
+    // Live search-as-you-type, debounced.
+    LaunchedEffect(cat, query) {
+        if (query.isBlank()) { vm.resetCatalog(); return@LaunchedEffect }
+        kotlinx.coroutines.delay(350)
+        vm.searchCatalog(cat, query)
+    }
+
+    if (picked != null || typedTitle != null) {
+        val displayTitle = picked?.title ?: typedTitle!!
+        val displaySub = picked?.subtitle
+        Column(
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                Text("Rate it", style = LbTextStyles.displayScreen, color = LbTheme.colors.ink, modifier = Modifier.weight(1f))
+                androidx.compose.material3.TextButton(onClick = { picked = null; typedTitle = null }) { Text("Change") }
+            }
+            androidx.compose.material3.Surface(
+                color = LbTheme.colors.panel,
+                shape = app.logbook.ui.theme.LbShape.card,
+                border = androidx.compose.foundation.BorderStroke(1.dp, LbTheme.colors.line),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(Modifier.padding(14.dp)) {
+                    Text(displayTitle, style = LbTextStyles.title, color = LbTheme.colors.ink)
+                    Text(
+                        listOfNotNull(app.logbook.core.model.Categories.displayLabel(picked?.cat ?: cat), displaySub).joinToString(" · "),
+                        style = LbTextStyles.label,
+                        color = LbTheme.colors.mute,
+                    )
+                }
+            }
+            app.logbook.ui.components.LbStarPicker(stars, { stars = it })
+            OutlinedTextField(
+                value = note,
+                onValueChange = { note = it },
+                label = { Text("Note (optional)") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                LbButton("Save", {
+                    vm.logMedia(displayTitle, picked?.ref, picked?.cat ?: cat, stars.takeIf { it > 0f }?.toDouble(), note) {
+                        vm.resetCatalog(); onDone()
+                    }
+                })
+                LbButton("Just log it", {
+                    vm.logMedia(displayTitle, picked?.ref, picked?.cat ?: cat, null, note) {
+                        vm.resetCatalog(); onDone()
+                    }
+                }, primary = false)
+            }
+        }
+        return
+    }
 
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(14.dp),
@@ -223,88 +288,46 @@ fun CaptureMediaScreen(vm: LogbookViewModel, onDone: () -> Unit) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf(
                 "movie" to "Movie", "tv" to "TV", "podcast" to "Podcast",
-                "album" to "Album", "book" to "Book", "recipe" to "Recipe",
+                "album" to "Album", "song" to "Song",
             ).forEach { (key, label) ->
-                LbChip(label, cat == key) { cat = key; picked = null; vm.resetCatalog() }
+                LbChip(label, cat == key) { cat = key; vm.resetCatalog() }
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf("book" to "Book", "recipe" to "Recipe", "game" to "Game").forEach { (key, label) ->
+                LbChip(label, cat == key) { cat = key; vm.resetCatalog() }
             }
         }
 
-        // Catalog search, with "add as typed" always available underneath.
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it },
-                label = { Text("Search the catalog") },
-                singleLine = true,
-                modifier = Modifier.weight(1f),
-            )
-            LbButton("Search", { vm.searchCatalog(cat, query) }, primary = false, enabled = query.isNotBlank())
-        }
+        OutlinedTextField(
+            value = query,
+            onValueChange = { query = it },
+            label = { Text("Title") },
+            placeholder = { Text("Type a title. Movie results come from TMDB.") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
         when (val state = catalog) {
             is CatalogState.Loading -> Text("Searching…", style = LbTextStyles.meta, color = LbTheme.colors.mute)
             is CatalogState.Results -> Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                state.items.take(6).forEach { item ->
+                state.items.take(8).forEach { item ->
                     LbButton(
                         label = item.title + (item.subtitle?.let { " · $it" } ?: ""),
-                        onClick = { picked = item; title = item.title },
+                        onClick = { picked = item },
                         primary = false,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
-            is CatalogState.NoResults -> Text("Nothing found. Add as typed.", style = LbTextStyles.meta, color = LbTheme.colors.mute)
+            is CatalogState.NoResults -> Text("Nothing found.", style = LbTextStyles.meta, color = LbTheme.colors.mute)
             is CatalogState.NoTmdbKey -> Text("Movie and TV search needs a TMDB key. Add it in Settings, or add as typed.", style = LbTextStyles.meta, color = LbTheme.colors.mute)
             is CatalogState.Offline -> Text("Offline. Add as typed.", style = LbTextStyles.meta, color = LbTheme.colors.mute)
             is CatalogState.NoCatalog -> Text("No catalog for this kind. Add as typed.", style = LbTextStyles.meta, color = LbTheme.colors.mute)
             is CatalogState.Idle -> Unit
         }
-        if (picked != null) {
-            Text(
-                "Linked to ${picked!!.ref}" + (picked!!.subtitle?.let { " · $it" } ?: ""),
-                style = LbTextStyles.meta,
-                color = LbTheme.colors.ok,
-            )
+        if (query.isNotBlank()) {
+            LbButton("Add “$query” as typed", { typedTitle = query.trim() }, primary = false, modifier = Modifier.fillMaxWidth())
         }
-
-        OutlinedTextField(
-            value = title,
-            onValueChange = { title = it; picked = null },
-            label = { Text("Title") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        StarSlider(stars) { stars = it }
-        OutlinedTextField(
-            value = note,
-            onValueChange = { note = it },
-            label = { Text("Note (optional)") },
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            LbButton("Just log it", {
-                vm.logMedia(title, picked?.ref, picked?.cat ?: cat, stars.takeIf { it > 0f }?.toDouble(), note) {
-                    vm.resetCatalog()
-                    onDone()
-                }
-            }, enabled = title.isNotBlank())
-            LbButton("Cancel", onDone, primary = false)
-        }
-    }
-}
-
-@Composable
-private fun StarSlider(value: Float, onChange: (Float) -> Unit) {
-    Column(Modifier.fillMaxWidth()) {
-        Text(
-            if (value <= 0f) "No rating yet" else String.format("%.1f stars", value),
-            style = LbTextStyles.label,
-            color = LbTheme.colors.ink2,
-        )
-        Slider(
-            value = value,
-            onValueChange = { onChange((it * 2).toInt() / 2f) },
-            valueRange = 0f..5f,
-            steps = 9,
-        )
+        LbButton("Cancel", onDone, primary = false)
     }
 }

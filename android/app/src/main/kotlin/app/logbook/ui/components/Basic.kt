@@ -1,6 +1,7 @@
 package app.logbook.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,11 +20,14 @@ import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Place
 import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.StarBorder
+import androidx.compose.material.icons.rounded.StarHalf
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -193,6 +197,8 @@ fun LbEntryRow(
     stars: Double?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    noteAnnotated: androidx.compose.ui.text.AnnotatedString? = null,
+    hasFollowUp: Boolean = false,
 ) {
     val colors = LbTheme.colors
     Surface(
@@ -225,8 +231,14 @@ fun LbEntryRow(
                 if (!subtitle.isNullOrBlank()) {
                     Text(subtitle, style = LbTextStyles.label, color = colors.mute, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
-                if (!note.isNullOrBlank()) {
+                if (noteAnnotated != null) {
+                    Text(noteAnnotated, style = LbTextStyles.body, color = colors.ink2, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                } else if (!note.isNullOrBlank()) {
                     Text(note, style = LbTextStyles.body, color = colors.ink2, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                }
+                if (hasFollowUp) {
+                    Spacer(Modifier.size(4.dp))
+                    LbFollowUpChip(onClick = onClick)
                 }
             }
         }
@@ -269,5 +281,112 @@ fun LbStatTile(value: String, label: String, before: String? = null, modifier: M
             Text(label, style = LbTextStyles.label, color = colors.ink2)
             if (before != null) Text(before, style = LbTextStyles.meta, color = colors.mute)
         }
+    }
+}
+
+/** A round initials avatar, used for people everywhere: Feed, Nudges, Person. */
+@Composable
+fun LbAvatar(initials: String, modifier: Modifier = Modifier, size: Dp = 40.dp) {
+    val colors = LbTheme.colors
+    Box(
+        modifier = modifier.size(size).background(colors.soft, CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(initials, style = LbTextStyles.title, color = colors.cobalt)
+    }
+}
+
+/** A small colour-coded status pill, used for cadence/reminder state (Reminder due, Slipping, Quiet, On track...). */
+@Composable
+fun LbStatusChip(label: String, tone: StatusTone, modifier: Modifier = Modifier) {
+    val colors = LbTheme.colors
+    val (bg, fg) = when (tone) {
+        StatusTone.ALERT -> colors.coral.copy(alpha = 0.16f) to colors.coral
+        StatusTone.WARN -> colors.warn.copy(alpha = 0.2f) to colors.warn
+        StatusTone.OK -> colors.ok.copy(alpha = 0.18f) to colors.ok
+        StatusTone.NEUTRAL -> colors.soft to colors.ink2
+    }
+    Surface(color = bg, contentColor = fg, shape = LbShape.chip, modifier = modifier) {
+        Text(label, style = LbTextStyles.label, modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp))
+    }
+}
+
+enum class StatusTone { ALERT, WARN, OK, NEUTRAL }
+
+/** A small pill marking a line as a follow-up, as the Feed and Nudges rows show it. */
+@Composable
+fun LbFollowUpChip(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val colors = LbTheme.colors
+    Surface(
+        onClick = onClick,
+        color = colors.page,
+        contentColor = colors.coral,
+        shape = LbShape.chip,
+        border = androidx.compose.foundation.BorderStroke(1.dp, colors.coral.copy(alpha = 0.5f)),
+        modifier = modifier,
+    ) {
+        Text("Follow-up", style = LbTextStyles.label, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
+    }
+}
+
+/** The 12-month contact bar chart on a Person page. */
+@Composable
+fun LbMonthBars(bars: List<app.logbook.core.analytics.MonthCount>, modifier: Modifier = Modifier) {
+    val colors = LbTheme.colors
+    val max = (bars.maxOfOrNull { it.count } ?: 0).coerceAtLeast(1)
+    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        bars.forEach { b ->
+            Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                val h = if (b.count == 0) 2.dp else (4 + (b.count.toFloat() / max) * 40).dp
+                Box(
+                    Modifier
+                        .heightIn(min = h, max = h)
+                        .fillMaxWidth()
+                        .padding(horizontal = 1.dp)
+                        .background(if (b.count == 0) colors.line else colors.cobalt, androidx.compose.foundation.shape.RoundedCornerShape(3.dp)),
+                )
+                Spacer(Modifier.size(4.dp))
+                Text(b.label.take(1), style = LbTextStyles.meta, color = colors.mute)
+            }
+        }
+    }
+}
+
+/** Tap a star (left half taps a half star), with +/- buttons for precision and accessibility. */
+@Composable
+fun LbStarPicker(value: Float, onChange: (Float) -> Unit, modifier: Modifier = Modifier) {
+    val colors = LbTheme.colors
+    fun clamp(v: Float) = v.coerceIn(0f, 5f)
+    Column(modifier) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            for (i in 1..5) {
+                val filled = value >= i
+                val half = !filled && value >= i - 0.5f
+                Icon(
+                    if (filled) Icons.Rounded.Star else if (half) Icons.Rounded.StarHalf else Icons.Rounded.StarBorder,
+                    contentDescription = "$i stars",
+                    tint = colors.star,
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clickable(
+                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                            indication = null,
+                        ) { onChange(clamp(i.toFloat())) },
+                )
+            }
+        }
+        Spacer(Modifier.size(6.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Surface(onClick = { onChange(clamp(value - 0.5f)) }, shape = androidx.compose.foundation.shape.CircleShape, color = colors.panel, border = androidx.compose.foundation.BorderStroke(1.dp, colors.line)) {
+                Text("-", style = LbTextStyles.title, color = colors.ink, modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp))
+            }
+            Spacer(Modifier.size(10.dp))
+            Text(if (value <= 0f) "No rating yet" else String.format("%.1f stars", value), style = LbTextStyles.body, color = colors.ink2)
+            Spacer(Modifier.size(10.dp))
+            Surface(onClick = { onChange(clamp(value + 0.5f)) }, shape = androidx.compose.foundation.shape.CircleShape, color = colors.panel, border = androidx.compose.foundation.BorderStroke(1.dp, colors.line)) {
+                Text("+", style = LbTextStyles.title, color = colors.ink, modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp))
+            }
+        }
+        Text("Tap a star, or use - and + for half stars.", style = LbTextStyles.meta, color = colors.mute)
     }
 }

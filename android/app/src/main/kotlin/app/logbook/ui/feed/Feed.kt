@@ -7,10 +7,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,7 +53,7 @@ import app.logbook.ui.theme.kindToTile
 import java.time.Instant
 import java.time.ZoneId
 
-private enum class FeedFilter { ALL, THOUGHTS, PLACES, LOOPS }
+private enum class FeedFilter { ALL, PEOPLE, THINGS, THOUGHTS, PLACES }
 
 /**
  * M4 Feed: the week card, the filter chips and the day groups, newest first.
@@ -79,15 +83,22 @@ fun FeedScreen(
     val shown = remember(events, filter) {
         events.filter { e ->
             when (filter) {
-                FeedFilter.ALL -> true
+                FeedFilter.ALL, FeedFilter.PEOPLE, FeedFilter.THINGS -> true
                 FeedFilter.THOUGHTS -> e.kind == "note"
                 FeedFilter.PLACES -> e.kind == "went" || e.place.isNotBlank() ||
                     e.cat in setOf("restaurant", "coffee", "place", "event")
-                FeedFilter.LOOPS -> e.note.isNotBlank() && followUpSpans(e.note).isNotEmpty()
             }
         }
     }
     val days = remember(shown, zone) { shown.groupBy { localDay(it.whenMs, zone) } }
+
+    val peopleRows = remember(model) { model.people.sortedByDescending { it.last } }
+    var thingsKind by rememberSaveable { mutableStateOf("all") }
+    val thingsKinds = remember(model) { model.content.map { app.logbook.core.model.Categories.catKey(it.cat) }.distinct() }
+    val thingsRows = remember(model, thingsKind) {
+        model.content.filter { thingsKind == "all" || app.logbook.core.model.Categories.catKey(it.cat) == thingsKind }
+            .sortedByDescending { it.last }
+    }
 
     if (events.isEmpty()) {
         Column(Modifier.fillMaxSize().padding(16.dp)) {
@@ -116,6 +127,7 @@ fun FeedScreen(
         item {
             WeekCard(
                 entries = week.n,
+                upFrom = remember(model, now) { weekStats(model, 7, now, zone).n },
                 days = week.days,
                 people = week.people.size,
                 themes = weekThemes.map { it.word },
@@ -124,27 +136,115 @@ fun FeedScreen(
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 LbChip("All", filter == FeedFilter.ALL) { filter = FeedFilter.ALL }
+                LbChip("People", filter == FeedFilter.PEOPLE, count = model.people.size) { filter = FeedFilter.PEOPLE }
+                LbChip("Things", filter == FeedFilter.THINGS) { filter = FeedFilter.THINGS }
                 LbChip("Thoughts", filter == FeedFilter.THOUGHTS) { filter = FeedFilter.THOUGHTS }
                 LbChip("Places", filter == FeedFilter.PLACES) { filter = FeedFilter.PLACES }
-                LbChip("Open loops", filter == FeedFilter.LOOPS) { filter = FeedFilter.LOOPS }
             }
         }
-        days.forEach { (day, list) ->
-            item(key = "h-$day") {
-                DayHeader(day = day, count = list.size, now = now, zone = zone) { onOpenDay(day) }
+        when (filter) {
+            FeedFilter.PEOPLE -> {
+                if (peopleRows.isEmpty()) {
+                    item { LbEmptyState(KindTile.PERSON, "Nobody yet", "People you log show up here.") }
+                }
+                items(peopleRows, key = { it.ref }) { p -> PersonRow(p, now, zone) { onOpenPerson(p.ref) } }
             }
-            items(list, key = { it.id }) { e ->
-                EntryRow(e, model.titleOf(e), onClick = {
-                    val ref = e.ref
-                    when {
-                        ref.startsWith("n:") -> onOpenPerson(ref)
-                        ref.isNotBlank() -> onOpenItem(ref)
-                        else -> onOpenDay(day)
+            FeedFilter.THINGS -> {
+                item {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        LbChip("All kinds", thingsKind == "all") { thingsKind = "all" }
+                        thingsKinds.forEach { k -> LbChip(app.logbook.core.model.Categories.LABEL[k] ?: k, thingsKind == k) { thingsKind = k } }
                     }
-                })
+                }
+                if (thingsRows.isEmpty()) {
+                    item { LbEmptyState(KindTile.MEDIA, "Nothing yet", "Things you log show up here.") }
+                }
+                items(thingsRows, key = { it.ref }) { t -> ThingRow(t) { onOpenItem(t.ref) } }
+            }
+            else -> {
+                days.forEach { (day, list) ->
+                    item(key = "h-$day") {
+                        DayHeader(day = day, count = list.size, now = now, zone = zone) { onOpenDay(day) }
+                    }
+                    items(list, key = { it.id }) { e ->
+                        EntryRow(e, model.titleOf(e), onClick = {
+                            val ref = e.ref
+                            when {
+                                ref.startsWith("n:") -> onOpenPerson(ref)
+                                ref.isNotBlank() -> onOpenItem(ref)
+                                else -> onOpenDay(day)
+                            }
+                        })
+                    }
+                }
             }
         }
         item { Spacer(Modifier.width(1.dp)) }
+    }
+}
+
+@Composable
+private fun PersonRow(p: Item, now: Long, zone: ZoneId, onClick: () -> Unit) {
+    val colors = LbTheme.colors
+    val notes = remember(p) { p.events.count { it.note.isNotBlank() } }
+    val initials = remember(p.title) { p.title.split(" ").filter { it.isNotBlank() }.take(2).joinToString("") { it.first().uppercase() } }
+    val state = remember(p, now) { app.logbook.core.reminders.personState(p, now, zone) }
+    androidx.compose.material3.Surface(
+        onClick = onClick,
+        color = colors.panel,
+        shape = app.logbook.ui.theme.LbShape.card,
+        border = androidx.compose.foundation.BorderStroke(1.dp, colors.line),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            app.logbook.ui.components.LbAvatar(initials)
+            Spacer(Modifier.width(10.dp))
+            Column(Modifier.weight(1f)) {
+                Text(p.title, style = LbTextStyles.title, color = colors.ink)
+                Text(
+                    "Met ${p.met} time${if (p.met == 1) "" else "s"} · last ${rel(p.last, now, zone)}" +
+                        if (notes > 0) " · $notes note${if (notes == 1) "" else "s"}" else "",
+                    style = LbTextStyles.label,
+                    color = colors.mute,
+                )
+            }
+            if (state.state == app.logbook.core.reminders.PersonState.SLIPPING || state.state == app.logbook.core.reminders.PersonState.QUIET) {
+                app.logbook.ui.components.LbStatusChip(state.label, app.logbook.ui.components.StatusTone.WARN)
+            } else if (state.state == app.logbook.core.reminders.PersonState.REMINDER_DUE) {
+                app.logbook.ui.components.LbStatusChip(state.label, app.logbook.ui.components.StatusTone.ALERT)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThingRow(t: Item, onClick: () -> Unit) {
+    val colors = LbTheme.colors
+    androidx.compose.material3.Surface(
+        onClick = onClick,
+        color = colors.panel,
+        shape = app.logbook.ui.theme.LbShape.card,
+        border = androidx.compose.foundation.BorderStroke(1.dp, colors.line),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            app.logbook.ui.components.LbKindTile(kindToTile(t.cat ?: "other"))
+            Spacer(Modifier.width(10.dp))
+            Column(Modifier.weight(1f)) {
+                Text(t.title, style = LbTextStyles.title, color = colors.ink, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                Text(
+                    "${app.logbook.core.model.Categories.displayLabel(t.cat)} · ${t.events.size} entr${if (t.events.size == 1) "y" else "ies"}",
+                    style = LbTextStyles.label,
+                    color = colors.mute,
+                )
+            }
+            if (t.stars != null) {
+                Icon(Icons.Rounded.Star, contentDescription = null, tint = colors.star, modifier = Modifier.size(14.dp))
+                Text(String.format("%.1f", t.stars), style = LbTextStyles.meta, color = colors.ink2)
+            } else {
+                Text("Not rated", style = LbTextStyles.meta, color = colors.mute)
+            }
+        }
     }
 }
 
@@ -165,23 +265,26 @@ private fun DayHeader(day: String, count: Int, now: Long, zone: ZoneId, onClick:
 }
 
 @Composable
-private fun WeekCard(entries: Int, days: Int, people: Int, themes: List<String>) {
+private fun WeekCard(entries: Int, upFrom: Int, days: Int, people: Int, themes: List<String>) {
     val colors = LbTheme.colors
     androidx.compose.material3.Surface(
-        color = colors.panel,
+        color = colors.soft,
         shape = app.logbook.ui.theme.LbShape.card,
-        border = androidx.compose.foundation.BorderStroke(1.dp, colors.line),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("This week", style = LbTextStyles.label, color = colors.mute)
-            Text(
-                "$entries entries · $days days · $people people met",
-                style = LbTextStyles.title,
-                color = colors.ink,
-            )
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(entries.toString(), style = LbTextStyles.displayScreen, color = colors.ink)
+                Spacer(Modifier.width(8.dp))
+                Column(Modifier.padding(bottom = 4.dp)) {
+                    Text("entries this week" + if (upFrom > 0) ", up from $upFrom" else "", style = LbTextStyles.label, color = colors.ink2)
+                }
+            }
+            Text("$days days active · $people people met", style = LbTextStyles.body, color = colors.ink2)
             if (themes.isNotEmpty()) {
-                Text("On your mind: " + themes.joinToString(", "), style = LbTextStyles.body, color = colors.ink2)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    themes.forEach { t -> LbChip(t) {} }
+                }
             }
         }
     }
@@ -194,12 +297,17 @@ fun EntryRow(e: Event, title: String, onClick: () -> Unit) {
         val t = Instant.ofEpochMilli(e.whenMs).atZone(zone)
         "%02d:%02d".format(t.hour, t.minute)
     }
+    val spans = remember(e.note) { if (e.note.isBlank()) emptyList() else followUpSpans(e.note) }
+    val markColor = LbTheme.colors.mark
+    val annotated = remember(e.note, spans) { if (spans.isEmpty()) null else highlighted(e.note, null, followUps = true, markColor = markColor) }
     LbEntryRow(
         time = time,
-        tile = kindToTile(e.kind),
+        tile = if (e.kind == "met") KindTile.PERSON else kindToTile(e.cat ?: e.kind),
         title = title,
         subtitle = if (e.cat != null) app.logbook.core.model.Categories.displayLabel(e.cat) else null,
         note = e.note.ifBlank { null },
+        noteAnnotated = annotated,
+        hasFollowUp = spans.isNotEmpty(),
         stars = e.stars,
         onClick = onClick,
     )

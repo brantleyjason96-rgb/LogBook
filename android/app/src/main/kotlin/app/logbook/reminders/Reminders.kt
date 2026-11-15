@@ -156,8 +156,17 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
         private const val PERIODIC = "logbook-reminders"
         private const val ONCE = "logbook-reminders-now"
 
-        fun schedule(context: Context) {
+        fun schedule(context: Context) = scheduleAt(context, hour(context))
+
+        /** Reschedules the daily check for the next occurrence of [hour] (0-23), then every 24h. */
+        fun scheduleAt(context: Context, hour: Int) {
+            prefs(context).edit().putInt(KEY_HOUR, hour).apply()
+            val now = java.time.ZonedDateTime.now(ZoneIds.zone)
+            var next = now.withHour(hour).withMinute(0).withSecond(0).withNano(0)
+            if (!next.isAfter(now)) next = next.plusDays(1)
+            val delay = java.time.Duration.between(now, next).toMillis()
             val request = PeriodicWorkRequestBuilder<ReminderWorker>(1, TimeUnit.DAYS)
+                .setInitialDelay(delay, TimeUnit.MILLISECONDS)
                 .setConstraints(
                     Constraints.Builder().setRequiresBatteryNotLow(true).build(),
                 )
@@ -165,6 +174,10 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
             WorkManager.getInstance(context)
                 .enqueueUniquePeriodicWork(PERIODIC, ExistingPeriodicWorkPolicy.UPDATE, request)
         }
+
+        private const val KEY_HOUR = "reminder_hour"
+        private fun prefs(context: Context) = context.getSharedPreferences("logbook_reminders", Context.MODE_PRIVATE)
+        fun hour(context: Context): Int = prefs(context).getInt(KEY_HOUR, 8)
 
         /** "Check now" in Settings. */
         fun runNow(context: Context) {
